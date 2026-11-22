@@ -1,0 +1,2285 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OlimpHub — Олимпиадаға дайындық платформасы</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Плавные переходы и кастомный скроллбар для чистого EdTech UI */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    .glass-header {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .card-hover {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.08);
+      border-color: #bfdbfe;
+    }
+    .fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Стилизация полосы прокрутки в чате AI */
+    .chat-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .chat-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ==================== ШАПКА ПРИЛОЖЕНИЯ (HEADER) ==================== -->
+  <header class="glass-header sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between py-3 gap-3">
+        
+        <!-- Логотип OlimpHub -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('catalog')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-brand-600/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xl font-extrabold tracking-tight text-slate-900">Olimp<span class="text-brand-600">Hub</span></span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">KZ</span>
+            </div>
+            <p id="header-subtitle" class="text-xs text-slate-500 hidden sm:block">Олимпиада есептері мен талдаулар</p>
+          </div>
+        </div>
+
+        <!-- Навигация по разделам -->
+        <nav class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/70 order-3 md:order-2 w-full md:w-auto justify-center">
+          <button id="nav-catalog" onclick="navigateTo('catalog')" class="nav-btn flex-1 md:flex-initial px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all">
+            Есептер каталогы
+          </button>
+          <button id="nav-progress" onclick="navigateTo('progress')" class="nav-btn flex-1 md:flex-initial px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all">
+            Прогресс
+          </button>
+          <button id="nav-pricing" onclick="navigateTo('pricing')" class="nav-btn flex-1 md:flex-initial px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all">
+            Тарифтер & B2B
+          </button>
+        </nav>
+
+        <!-- Правая панель: Демо-режим доступа, Счётчик прогресса и Переключатель языка KZ | RU -->
+        <div class="flex items-center gap-2 sm:gap-3 order-2 md:order-3">
+          
+          <!-- Бейдж статистики (Решено / Открыто разборов) -->
+          <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700" title="Прогресс">
+            <span class="flex items-center gap-1 text-emerald-700 font-semibold">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              <span id="badge-solved">0/8</span>
+            </span>
+            <span class="text-slate-300">|</span>
+            <span class="flex items-center gap-1 text-brand-700 font-semibold">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+              <span id="badge-unlocked">2</span>
+            </span>
+          </div>
+
+          <!-- Демо-переключатель тарифа (Free vs Olimp PRO) -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200" title="Демо-переключатель режима доступа">
+            <button id="mode-free-btn" onclick="setProMode(false)" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+              Free
+            </button>
+            <button id="mode-pro-btn" onclick="setProMode(true)" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+              <span>Olimp PRO</span>
+              <span class="text-[10px]">👑</span>
+            </button>
+          </div>
+
+          <!-- Переключатель языка KZ | RU -->
+          <div class="flex items-center bg-slate-900 text-white p-1 rounded-xl shadow-sm">
+            <button id="lang-kz-btn" onclick="setLanguage('kz')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+              KZ
+            </button>
+            <button id="lang-ru-btn" onclick="setLanguage('ru')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+              RU
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== ОСНОВНОЙ КОНТЕЙНЕР ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ==================== 1. ЭКРАН КАТАЛОГА ЗАДАЧ ==================== -->
+    <section id="view-catalog" class="fade-in space-y-6">
+      
+      <!-- Приветственный баннер / Hero -->
+      <div class="bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 rounded-2xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-medium text-blue-100">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hero-badge">Республикалық және облыстық олимпиадалар мұрағаты (2022–2025)</span>
+          </div>
+          <h1 id="hero-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+            Олимпиада есептерін қадамдық талдаумен және AI-көмекшімен меңгер
+          </h1>
+          <p id="hero-desc" class="text-sm sm:text-base text-blue-100/90 leading-relaxed">
+            Ескі PDF файлдарды іздеудің қажеті жоқ: пән, сынып және кезең бойынша сүзгіден өткіз, кеңестерді қолдан және күрделі есептердің толық шешімін аш.
+          </p>
+        </div>
+        <!-- Декоративные круги -->
+        <div class="hidden md:block absolute -right-12 -top-12 w-64 h-64 rounded-full bg-brand-500/20 blur-2xl"></div>
+        <div class="hidden md:block absolute right-24 -bottom-16 w-48 h-48 rounded-full bg-indigo-400/20 blur-xl"></div>
+      </div>
+
+      <!-- Панель умных фильтров -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="relative flex-1">
+            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input id="filter-search" type="text" oninput="applyFilters()" placeholder="Есеп шарты, тақырып немесе кілт сөз бойынша іздеу..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none text-sm transition-all" />
+          </div>
+          <button onclick="resetFilters()" id="btn-reset-filters" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium transition-colors shrink-0">
+            Сүзгілерді тазалау
+          </button>
+        </div>
+
+        <!-- Выпадающие списки фильтров -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div>
+            <label id="lbl-filter-subject" class="block text-xs font-semibold text-slate-500 mb-1">Пән</label>
+            <select id="filter-subject" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+          <div>
+            <label id="lbl-filter-grade" class="block text-xs font-semibold text-slate-500 mb-1">Сынып</label>
+            <select id="filter-grade" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+          <div>
+            <label id="lbl-filter-stage" class="block text-xs font-semibold text-slate-500 mb-1">Кезең</label>
+            <select id="filter-stage" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+          <div>
+            <label id="lbl-filter-year" class="block text-xs font-semibold text-slate-500 mb-1">Жыл</label>
+            <select id="filter-year" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+          <div>
+            <label id="lbl-filter-topic" class="block text-xs font-semibold text-slate-500 mb-1">Тақырып</label>
+            <select id="filter-topic" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+          <div>
+            <label id="lbl-filter-status" class="block text-xs font-semibold text-slate-500 mb-1">Күйі</label>
+            <select id="filter-status" onchange="applyFilters()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-brand-500 outline-none"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Счётчик найденных задач -->
+      <div class="flex items-center justify-between">
+        <p id="catalog-count-label" class="text-sm font-semibold text-slate-600">Табылған есептер: 8</p>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span id="legend-free">Тегін талдау бар</span>
+        </div>
+      </div>
+
+      <!-- Сетка карточек задач -->
+      <div id="problems-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Карточки рендерятся динамически через JS -->
+      </div>
+
+    </section>
+
+    <!-- ==================== 2. РАБОЧАЯ ОБЛАСТЬ ЗАДАЧИ (WORKSPACE) ==================== -->
+    <section id="view-workspace" class="hidden fade-in space-y-6">
+      
+      <!-- Верхняя панель возврата -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <button onclick="navigateTo('catalog')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold shadow-sm transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span id="btn-back-catalog">Каталогқа оралу</span>
+        </button>
+        <div id="ws-top-badges" class="flex flex-wrap items-center gap-2"></div>
+      </div>
+
+      <!-- Основная 2-колоночная сетка рабочей области -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Левая колонка (7/12): Условие, ввод ответа, подсказки и блок разбора/Paywall -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <!-- Карточка условия задачи -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+            <div class="space-y-2">
+              <div id="ws-meta-line" class="flex flex-wrap items-center gap-2 text-xs font-semibold"></div>
+              <h2 id="ws-title" class="text-xl sm:text-2xl font-extrabold text-slate-900"></h2>
+            </div>
+
+            <div id="ws-statement" class="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-800 text-base leading-relaxed"></div>
+
+            <!-- Блок проверки ответа ученика -->
+            <div class="pt-2 border-t border-slate-100 space-y-3">
+              <label id="ws-answer-label" class="block text-sm font-bold text-slate-800">Жауабыңызды енгізіңіз (тек сан немесе қысқа мән):</label>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input id="ws-answer-input" type="text" onkeydown="if(event.key==='Enter') checkUserAnswer()" placeholder="Мысалы: 42" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20 outline-none text-base font-semibold text-slate-900" />
+                <button onclick="checkUserAnswer()" id="ws-check-btn" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-sm shadow-brand-600/20 transition-all shrink-0">
+                  Тексеру
+                </button>
+              </div>
+              <!-- Сообщение с результатом проверки -->
+              <div id="ws-answer-feedback" class="hidden p-3.5 rounded-xl text-sm font-medium"></div>
+            </div>
+          </div>
+
+          <!-- Пошаговые подсказки (Progressive Hints) -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </div>
+                <div>
+                  <h3 id="ws-hints-title" class="text-base font-bold text-slate-900">Қадамдық кеңестер (Hints)</h3>
+                  <p id="ws-hints-subtitle" class="text-xs text-slate-500">Толық шешімді ашпас бұрын өзіңіз ойланып көріңіз</p>
+                </div>
+              </div>
+              <span id="ws-hints-counter" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">0 / 3</span>
+            </div>
+
+            <div id="ws-hints-list" class="space-y-2.5">
+              <!-- Подсказки рендерятся динамически -->
+            </div>
+          </div>
+
+          <!-- Блок полного разбора (Открытый или Paywall) -->
+          <div id="ws-solution-container" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <!-- Рендерится динамически: либо открытый разбор + видео + советы автора, либо Paywall -->
+          </div>
+
+        </div>
+
+        <!-- Правая колонка (5/12): Интерактивный AI-көмекші / AI-помощник -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden sticky top-24">
+          <div class="p-4 bg-gradient-to-r from-indigo-600 to-brand-600 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-bold text-lg">
+                🤖
+              </div>
+              <div>
+                <h3 id="ai-title" class="text-sm font-bold">OlimpAI — Жеке тәлімгер</h3>
+                <p id="ai-subtitle" class="text-[11px] text-blue-100">Қателерді талдайды және ұқсас есеп ұсынады</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-300/30 text-[10px] font-bold text-emerald-100">ONLINE</span>
+          </div>
+
+          <!-- История сообщений AI-чата -->
+          <div id="ai-chat-messages" class="p-4 space-y-3 h-80 overflow-y-auto chat-scroll bg-slate-50/60">
+            <!-- Сообщения рендерятся динамически -->
+          </div>
+
+          <!-- Быстрые кнопки-чипсы для AI -->
+          <div class="px-4 pt-3 pb-2 border-t border-slate-100 bg-white">
+            <p id="ai-quick-label" class="text-[11px] font-semibold text-slate-400 mb-2">Жылдам сұрақтар:</p>
+            <div id="ai-quick-chips" class="flex flex-wrap gap-1.5">
+              <!-- Чипсы рендерятся динамически -->
+            </div>
+          </div>
+
+          <!-- Поле ввода вопроса для AI -->
+          <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+            <input id="ai-user-input" type="text" onkeydown="if(event.key==='Enter') sendAiCustomMessage()" placeholder="Сұрағыңызды жазыңыз..." class="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-brand-500 outline-none text-xs sm:text-sm" />
+            <button onclick="sendAiCustomMessage()" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm transition-colors shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 3. ЭКРАН ТРЕКЕРА ПРОГРЕССА ==================== -->
+    <section id="view-progress" class="hidden fade-in space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 id="prog-title" class="text-2xl font-extrabold text-slate-900">Оқушының үлгерім трекері</h2>
+          <p id="prog-subtitle" class="text-sm text-slate-500">Шығарылған есептер, дәлдік көрсеткіші және тақырыптар бойынша талдау</p>
+        </div>
+        <button onclick="navigateTo('catalog')" id="prog-cta-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-sm self-start">
+          Есеп шығаруды жалғастыру
+        </button>
+      </div>
+
+      <!-- 4 KPI карточки -->
+      <div id="prog-kpi-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Прогресс по предметам + Сильные и слабые темы -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <h3 id="prog-subjects-title" class="text-base font-bold text-slate-900">Пәндер бойынша прогресс</h3>
+          <div id="prog-subjects-list" class="space-y-4"></div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+          <h3 id="prog-topics-title" class="text-base font-bold text-slate-900">Тақырыптар бойынша диагностика</h3>
+          <div id="prog-topics-analysis" class="space-y-4"></div>
+        </div>
+      </div>
+
+      <!-- Журнал последних действий -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 id="prog-activity-title" class="text-base font-bold text-slate-900">Соңғы белсенділік тарихы</h3>
+        <div id="prog-activity-list" class="divide-y divide-slate-100"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. ЭКРАН ТАРИФОВ И B2B ==================== -->
+    <section id="view-pricing" class="hidden fade-in space-y-8">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span id="price-badge" class="inline-block px-3 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold">
+          Икемді тарифтер (₸)
+        </span>
+        <h2 id="price-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900">
+          Олимпиадаға дайындыққа арналған тиімді жоспарды таңдаңыз
+        </h2>
+        <p id="price-subtitle" class="text-sm sm:text-base text-slate-500">
+          Репетитордың 1 сағаты (5 000–8 000 ₸) орнына — бүкіл ай бойы шексіз қадамдық талдаулар мен AI-көмекші.
+        </p>
+      </div>
+
+      <!-- Сетка 4 тарифов -->
+      <div id="pricing-cards-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch"></div>
+
+      <!-- B2B Демо-блок для учителей и школ -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-3">
+            <span class="inline-block px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-bold">
+              B2B — Мектептер мен олимпиадалық резерв тренерлеріне
+            </span>
+            <h3 id="b2b-banner-title" class="text-xl sm:text-2xl font-extrabold">
+              Сыныптық пакет «OlimpHub School» — 29 900 ₸ / ай
+            </h3>
+            <p id="b2b-banner-desc" class="text-sm text-slate-300 leading-relaxed">
+              15 оқушыға дейін бірыңғай қолжетімділік, әр оқушының әлсіз тақырыптары бойынша мұғалім аналитикасы және 1 батырмамен үй тапсырмасын (PDF/онлайн тест) генерациялау.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+              <button onclick="openCheckoutModal('b2b', null)" id="b2b-banner-btn" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition-colors">
+                Мектеп пакетін қосу — 29 900 ₸
+              </button>
+            </div>
+          </div>
+          <!-- Превью мини-дашборда учителя -->
+          <div class="lg:col-span-5 bg-white/10 backdrop-blur border border-white/15 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+              <span id="b2b-preview-header">Мұғалім панелі (9 «А» олимпиада тобы)</span>
+              <span class="text-emerald-400">15/15 белсенді</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <div class="p-2.5 rounded-lg bg-slate-950/50 flex justify-between items-center">
+                <span>1. Әлихан С. (Математика)</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">92% дәлдік</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-950/50 flex justify-between items-center">
+                <span>2. Аружан Т. (Физика)</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">85% дәлдік</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-950/50 flex justify-between items-center">
+                <span>3. Данияр М. (Информатика)</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">Графтар: қайталау</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== ФУТЕР ==================== -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-800">OlimpHub</span>
+        <span>© 2025–2026.</span>
+        <span id="footer-tagline">Қазақстан оқушыларына арналған олимпиадалық EdTech платформа.</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="footer-currency">Барлық төлемдер теңгемен (₸) қабылданады</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== МОДАЛЬНОЕ ОКНО ОПЛАТЫ (CHECKOUT MODAL) ==================== -->
+  <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden fade-in">
+      <!-- Шапка модального окна -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
+          <h3 id="modal-title" class="text-base font-extrabold text-slate-900">Төлемді растау</h3>
+        </div>
+        <button onclick="closeCheckoutModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Тело модального окна -->
+      <div class="p-6 space-y-5">
+        <!-- Детали заказа -->
+        <div class="p-4 rounded-xl bg-brand-50/70 border border-brand-100 space-y-1.5">
+          <p id="modal-item-type" class="text-xs font-bold uppercase tracking-wider text-brand-700">Тариф / Қызмет</p>
+          <p id="modal-item-name" class="text-base font-extrabold text-slate-900"></p>
+          <p id="modal-item-desc" class="text-xs text-slate-600"></p>
+          <div class="pt-2 mt-2 border-t border-brand-200/60 flex items-baseline justify-between">
+            <span id="modal-total-label" class="text-xs font-semibold text-slate-600">Төлем сомасы:</span>
+            <span id="modal-total-amount" class="text-2xl font-extrabold text-slate-900">390 ₸</span>
+          </div>
+        </div>
+
+        <!-- Выбор способа оплаты -->
+        <div class="space-y-2">
+          <label id="modal-pay-method-label" class="block text-xs font-bold text-slate-700">Төлем тәсілін таңдаңыз:</label>
+          <div class="grid grid-cols-3 gap-2.5">
+            <button type="button" onclick="selectPaymentMethod('kaspi')" id="pay-method-kaspi" class="pay-method-btn p-3 rounded-xl border-2 border-brand-600 bg-brand-50/40 text-center transition-all">
+              <div class="text-sm font-extrabold text-red-600">Kaspi.kz</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">QR / Gold</div>
+            </button>
+            <button type="button" onclick="selectPaymentMethod('card')" id="pay-method-card" class="pay-method-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-center transition-all">
+              <div class="text-sm font-extrabold text-slate-800">Карта</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Visa / MC</div>
+            </button>
+            <button type="button" onclick="selectPaymentMethod('apple')" id="pay-method-apple" class="pay-method-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-center transition-all">
+              <div class="text-sm font-extrabold text-slate-800">Apple Pay</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">1-click</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Кнопка подтверждения оплаты -->
+        <button id="modal-confirm-btn" onclick="confirmMockPayment()" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow-lg shadow-brand-600/25 transition-all flex items-center justify-center gap-2">
+          <span id="modal-confirm-text">Төлеу — 390 ₸</span>
+        </button>
+
+        <p id="modal-security-note" class="text-[11px] text-center text-slate-400">
+          🔒 Демо-төлем режимі: нақты қаражат шешілмейді, қолжетімділік бірден ашылады.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Всплывающее уведомление (Toast) -->
+  <div id="toast-notification" class="fixed bottom-5 right-5 z-50 hidden items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-xl border border-slate-700 fade-in">
+    <span id="toast-icon" class="text-emerald-400 text-base">✓</span>
+    <span id="toast-message">Сәтті орындалды!</span>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ЛОГИКА ПРИЛОЖЕНИЯ ==================== -->
+  <script>
+    /**
+     * 1. ДВУЯЗЫЧНЫЙ СЛОВАРЬ ИНТЕРФЕЙСА (KZ / RU)
+     */
+    const I18N = {
+      kz: {
+        headerSubtitle: 'Олимпиада есептері мен талдаулар',
+        navCatalog: 'Есептер каталогы',
+        navProgress: 'Прогресс',
+        navPricing: 'Тарифтер & B2B',
+        heroBadge: 'Республикалық және облыстық олимпиадалар мұрағаты (2022–2025)',
+        heroTitle: 'Олимпиада есептерін қадамдық талдаумен және AI-көмекшімен меңгер',
+        heroDesc: 'Ескі PDF файлдарды іздеудің қажеті жоқ: пән, сынып және кезең бойынша сүзгіден өткіз, кеңестерді қолдан және күрделі есептердің толық шешімін аш.',
+        searchPlaceholder: 'Есеп шарты, тақырып немесе кілт сөз бойынша іздеу...',
+        resetFilters: 'Сүзгілерді тазалау',
+        lblSubject: 'Пән',
+        lblGrade: 'Сынып',
+        lblStage: 'Кезең',
+        lblYear: 'Жыл',
+        lblTopic: 'Тақырып',
+        lblStatus: 'Күйі',
+        allOption: 'Барлығы',
+        gradeSuffix: '-сынып',
+        statusSolved: 'Шығарылды',
+        statusUnsolved: 'Шығарылмаған',
+        statusUnlocked: 'Талдауы ашық',
+        statusLocked: 'Талдау жабық',
+        foundCount: 'Табылған есептер',
+        legendFree: 'Тегін талдау үлгісі бар',
+        openProblemBtn: 'Есепті ашу',
+        freeTag: 'Тегін талдау',
+        proTag: 'PRO қолжетімді',
+        purchasedTag: 'Сатып алынған',
+        lockedPriceTag: 'Талдау: 390 ₸',
+        backToCatalog: 'Каталогқа оралу',
+        answerLabel: 'Жауабыңызды енгізіңіз (тек сан немесе қысқа мән):',
+        answerPlaceholder: 'Жауапты жазыңыз...',
+        checkBtn: 'Тексеру',
+        answerEmpty: 'Алдымен жауап нұсқасын енгізіңіз.',
+        answerCorrect: 'Тамаша! Жауабыңыз дұрыс. Ұпай қосылды және есеп «Шығарылды» деп белгіленді.',
+        answerWrong: 'Әзірге қате. Төмендегі қадамдық кеңестерді ашып көріңіз немесе AI-көмекшіден сұраңыз!',
+        hintsTitle: 'Қадамдық кеңестер (Hints)',
+        hintsSubtitle: 'Толық шешімді ашпас бұрын өзіңіз ойланып көріңіз',
+        hintRevealBtn: 'Кеңесті ашу',
+        hintNumber: 'Кеңес',
+        solutionHeaderTitle: 'Толық қадамдық талдау және авторлық кеңестер',
+        videoTitle: 'Бейне-талдау: Олимпиадалық тәсіл (08:45)',
+        videoSub: 'Қазылар алқасы мүшесінің түсіндірмесі • 1080p HD',
+        videoPlayBtn: 'Бейнені ойнату',
+        videoPlaying: 'Бейне-талдау ойнатылуда: «Негізгі идея және бағалау»...',
+        authorTipsTitle: 'Автордың олимпиадалық кеңесі',
+        paywallBadge: 'Қадамдық шешім құлыпталған',
+        paywallTitle: 'Бұл есептің толық талдауы мен бейне-түсіндірмесін ашыңыз',
+        paywallDesc: 'Ішінде: қадамдық логикалық шешім, 8 минуттық бейне-талдау және қазылар алқасының жиі кездесетін қателер бойынша кеңестері бар.',
+        paywallSingleBtn: 'Бұл есептің талдауын ашу — 390 ₸',
+        paywallProBtn: 'Olimp PRO қосу — 3 990 ₸/ай',
+        aiTitle: 'OlimpAI — Жеке тәлімгер',
+        aiSubtitle: 'Қателерді талдайды және ұқсас есеп ұсынады',
+        aiQuickLabel: 'Жылдам сұрақтар:',
+        aiPlaceholder: 'Есеп бойынша сұрақ қойыңыз...',
+        aiChips: [
+          { id: 'mistake', label: 'Менің қатемді тап' },
+          { id: 'formula', label: 'Негізгі формула/идея' },
+          { id: 'similar', label: 'Ұқсас есеп бер' }
+        ],
+        aiWelcome: 'Сәлем! Мен осы есепті шығаруға көмектесемін. Алдымен өзіңіз шығарып көріңіз, ал қиындық туындаса — төмендегі батырмаларды басыңыз.',
+        progTitle: 'Оқушының үлгерім трекері',
+        progSubtitle: 'Шығарылған есептер, дәлдік көрсеткіші және тақырыптар бойынша талдау',
+        progCtaBtn: 'Есеп шығаруды жалғастыру',
+        progSubjectsTitle: 'Пәндер бойынша прогресс',
+        progTopicsTitle: 'Тақырыптар бойынша диагностика',
+        progActivityTitle: 'Соңғы белсенділік тарихы',
+        kpiSolved: 'Шығарылған есептер',
+        kpiAccuracy: 'Жауап дәлдігі',
+        kpiUnlocked: 'Ашылған талдаулар',
+        kpiPoints: 'Олимпиадалық ұпай',
+        strongTopicsLabel: 'Күшті тақырыптар (80%+)',
+        weakTopicsLabel: 'Назар аудару керек тақырыптар',
+        priceBadge: 'Икемді тарифтер (₸)',
+        priceTitle: 'Олимпиадаға дайындыққа арналған тиімді жоспарды таңдаңыз',
+        priceSubtitle: 'Репетитордың 1 сағаты (5 000–8 000 ₸) орнына — бүкіл ай бойы шексіз қадамдық талдаулар мен AI-көмекші.',
+        b2bBannerTitle: 'Сыныптық пакет «OlimpHub School» — 29 900 ₸ / ай',
+        b2bBannerDesc: '15 оқушыға дейін бірыңғай қолжетімділік, әр оқушының әлсіз тақырыптары бойынша мұғалім аналитикасы және 1 батырмамен үй тапсырмасын генерациялау.',
+        b2bBannerBtn: 'Мектеп пакетін қосу — 29 900 ₸',
+        b2bPreviewHeader: 'Мұғалім панелі (9 «А» олимпиада тобы)',
+        footerTagline: 'Қазақстан оқушыларына арналған олимпиадалық EdTech платформа.',
+        footerCurrency: 'Барлық төлемдер теңгемен (₸) қабылданады',
+        modalTitle: 'Төлемді растау',
+        modalItemType: 'Таңдалған қызмет',
+        modalTotalLabel: 'Төлем сомасы:',
+        modalPayMethodLabel: 'Төлем тәсілін таңдаңыз:',
+        modalPayBtnPrefix: 'Төлеу — ',
+        modalProcessing: 'Төлем өңделуде...',
+        modalSecurityNote: '🔒 Демо-төлем режимі: нақты қаражат шешілмейді, қолжетімділік бірден ашылады.',
+        toastProOn: 'Olimp PRO режимі белсендірілді! Барлық талдаулар ашық.',
+        toastProOff: 'Free режиміне ауыстырылды (Paywall тексеру режимі).',
+        toastPaidSingle: 'Төлем сәтті өтті! Бұл есептің талдауы ашылды.',
+        toastPaidPro: 'Құттықтаймыз! Olimp PRO жазылымы белсендірілді.',
+        toastPaidB2b: 'Мектептік B2B пакеті сәтті рәсімделді! Менеджер хабарласады.',
+        noProblemsFound: 'Сүзгі шарттарына сәйкес есептер табылмады. Сүзгілерді өзгертіп көріңіз.'
+      },
+      ru: {
+        headerSubtitle: 'Архив олимпиадных задач и разборов',
+        navCatalog: 'Каталог задач',
+        navProgress: 'Прогресс',
+        navPricing: 'Тарифы & B2B',
+        heroBadge: 'Архив республиканских и областных олимпиад РК (2022–2025)',
+        heroTitle: 'Осваивай олимпиадные задачи с пошаговым разбором и AI-помощником',
+        heroDesc: 'Больше не нужно искать старые PDF в чатах: фильтруй по предмету, классу и этапу, используй подсказки и открывай подробные решения.',
+        searchPlaceholder: 'Поиск по условию задачи, теме или ключевому слову...',
+        resetFilters: 'Сбросить фильтры',
+        lblSubject: 'Предмет',
+        lblGrade: 'Класс',
+        lblStage: 'Этап',
+        lblYear: 'Год',
+        lblTopic: 'Тема',
+        lblStatus: 'Статус',
+        allOption: 'Все',
+        gradeSuffix: ' класс',
+        statusSolved: 'Решена',
+        statusUnsolved: 'Не решена',
+        statusUnlocked: 'Разбор открыт',
+        statusLocked: 'Разбор закрыт',
+        foundCount: 'Найдено задач',
+        legendFree: 'Есть бесплатный пример разбора',
+        openProblemBtn: 'Открыть задачу',
+        freeTag: 'Бесплатный разбор',
+        proTag: 'Доступно по PRO',
+        purchasedTag: 'Куплено',
+        lockedPriceTag: 'Разбор: 390 ₸',
+        backToCatalog: 'Назад в каталог',
+        answerLabel: 'Введите ваш ответ (число или краткое значение):',
+        answerPlaceholder: 'Введите ответ...',
+        checkBtn: 'Проверить',
+        answerEmpty: 'Сначала введите ваш вариант ответа.',
+        answerCorrect: 'Отлично! Ответ верный. Начислены баллы, задача отмечена как «Решена».',
+        answerWrong: 'Пока неверно. Попробуйте открыть пошаговые подсказки ниже или спросите AI-помощника!',
+        hintsTitle: 'Пошаговые подсказки (Hints)',
+        hintsSubtitle: 'Попробуйте догадаться сами, прежде чем открывать полное решение',
+        hintRevealBtn: 'Открыть подсказку',
+        hintNumber: 'Подсказка',
+        solutionHeaderTitle: 'Полный пошаговый разбор и советы автора',
+        videoTitle: 'Видео-разбор: Олимпиадный метод (08:45)',
+        videoSub: 'Комментарий члена жюри • 1080p HD',
+        videoPlayBtn: 'Смотреть разбор',
+        videoPlaying: 'Воспроизведение видео-разбора: «Ключевая идея и оценка»...',
+        authorTipsTitle: 'Авторский совет для олимпиады',
+        paywallBadge: 'Пошаговое решение закрыто',
+        paywallTitle: 'Откройте полный пошаговый разбор и видео-объяснение этой задачи',
+        paywallDesc: 'Внутри: подробная логика решения без пробелов, 8-минутный видео-разбор и советы жюри по типичным ошибкам участников.',
+        paywallSingleBtn: 'Открыть разбор этой задачи — 390 ₸',
+        paywallProBtn: 'Оформить Olimp PRO — 3 990 ₸/мес',
+        aiTitle: 'OlimpAI — Личный наставник',
+        aiSubtitle: 'Разбирает ошибки и подбирает похожие задачи',
+        aiQuickLabel: 'Быстрые вопросы:',
+        aiPlaceholder: 'Задайте вопрос по задаче...',
+        aiChips: [
+          { id: 'mistake', label: 'Найди мою ошибку' },
+          { id: 'formula', label: 'Ключевая формула/идея' },
+          { id: 'similar', label: 'Похожая задача' }
+        ],
+        aiWelcome: 'Привет! Я помогу разобраться с этой задачей. Попробуй сначала решить сам, а если застрянешь — нажми на одну из подсказок ниже.',
+        progTitle: 'Трекер прогресса ученика',
+        progSubtitle: 'Решённые задачи, точность ответов и диагностика по темам',
+        progCtaBtn: 'Продолжить решать задачи',
+        progSubjectsTitle: 'Прогресс по предметам',
+        progTopicsTitle: 'Диагностика по темам',
+        progActivityTitle: 'История последних действий',
+        kpiSolved: 'Решено задач',
+        kpiAccuracy: 'Точность ответов',
+        kpiUnlocked: 'Открыто разборов',
+        kpiPoints: 'Олимпиадные баллы',
+        strongTopicsLabel: 'Сильные темы (80%+)',
+        weakTopicsLabel: 'Темы для повторения',
+        priceBadge: 'Гибкие тарифы (₸)',
+        priceTitle: 'Выберите подходящий формат подготовки к олимпиадам',
+        priceSubtitle: 'Вместо 1 часа репетитора (5 000–8 000 ₸) — целый месяц безлимитных пошаговых разборов и AI-наставника.',
+        b2bBannerTitle: 'Школьный / Классный пакет «OlimpHub School» — 29 900 ₸ / мес',
+        b2bBannerDesc: 'Групповой доступ до 15 учеников, аналитика слабых тем для учителя и генерация олимпиадных домашних заданий в 1 клик.',
+        b2bBannerBtn: 'Подключить пакет для класса — 29 900 ₸',
+        b2bPreviewHeader: 'Панель учителя (9 «А» олимпиадный резерв)',
+        footerTagline: 'Образовательная EdTech-платформа для подготовки к олимпиадам Казахстана.',
+        footerCurrency: 'Все расчёты производятся в тенге (₸)',
+        modalTitle: 'Подтверждение оплаты',
+        modalItemType: 'Выбранная услуга',
+        modalTotalLabel: 'Итого к оплате:',
+        modalPayMethodLabel: 'Выберите способ оплаты:',
+        modalPayBtnPrefix: 'Оплатить — ',
+        modalProcessing: 'Обработка платежа...',
+        modalSecurityNote: '🔒 Демо-режим оплаты: реальные средства не списываются, доступ открывается мгновенно.',
+        toastProOn: 'Режим Olimp PRO активирован! Все разборы открыты.',
+        toastProOff: 'Переключено в режим Free (проверка Paywall).',
+        toastPaidSingle: 'Оплата прошла успешно! Разбор этой задачи открыт.',
+        toastPaidPro: 'Поздравляем! Подписка Olimp PRO активирована.',
+        toastPaidB2b: 'Школьный пакет B2B оформлен! Доступ для класса активирован.',
+        noProblemsFound: 'По выбранным фильтрам задачи не найдены. Попробуйте сбросить фильтры.'
+      }
+    };
+
+    /**
+     * 2. БАЗА ОЛИМПИАДНЫХ ЗАДАЧ (8 РЕАЛИСТИЧНЫХ ЗАДАЧ НА KZ И RU)
+     */
+    const PROBLEMS_DATA = [
+      {
+        id: 'math-2024-rep-9',
+        subject: { kz: 'Математика', ru: 'Математика' },
+        grade: 9,
+        stage: { kz: 'Республикалық', ru: 'Республиканский' },
+        year: 2024,
+        topic: { kz: 'Комбинаторика', ru: 'Комбинаторика' },
+        difficulty: 3,
+        isFreeSample: true, // Бесплатный образец для демонстрации
+        answer: '126',
+        title: {
+          kz: 'Торлы тақтадағы ең қысқа жолдар саны',
+          ru: 'Количество кратчайших путей на клетчатой доске'
+        },
+        statement: {
+          kz: 'Өлшемі 5×4 болатын тіктөртбұрышты тордың сол жақ төменгі бұрышынан оң жақ жоғарғы бұрышына дейін тек оңға немесе жоғары қарай жүру арқылы неше түрлі ең қысқа жолмен жетуге болады?',
+          ru: 'Сколькими различными кратчайшими путями можно добраться из левого нижнего угла прямоугольной сетки размером 5×4 в правый верхний угол, если двигаться разрешается только вправо или вверх по линиям сетки?'
+        },
+        hints: {
+          kz: [
+            'Ең қысқа жолда солға немесе төмен жүруге болмайды. Барлығы неше қадам жасалатынын есептеңіз.',
+            'Кез келген жол 5 рет «Оңға» (О) және 4 рет «Жоғары» (Ж) қадамдарынан тұрады. Барлығы 9 қадам.',
+            '9 орынның ішінен 4 «Жоғары» қадамын таңдау тәсілдер саны терулер санына тең: C(9, 4) = 9! / (4! · 5!).'
+          ],
+          ru: [
+            'В кратчайшем пути нельзя делать шаги влево или вниз. Посчитайте общее количество элементарных шагов.',
+            'Любой такой маршрут состоит ровно из 5 шагов «Вправо» (П) и 4 шагов «Вверх» (В) — всего 9 шагов.',
+            'Задача сводится к выбору 4 позиций для шагов «Вверх» из 9 возможных: число сочетаний C(9, 4) = 9! / (4! · 5!).'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Координаталық модель құрамыз: бастапқы нүкте (0, 0), соңғы нүкте (5, 4). Әр қадамда x немесе y координатасы 1-ге артады.',
+            '2-қадам. Жалпы қадамдар саны: 5 + 4 = 9. Оның ішінде 5 қадам көлденең (О) және 4 қадам тік (Ж) бағытта.',
+            '3-қадам. 9 әріптен тұратын (5 «О» және 4 «Ж») әртүрлі сөздер санын табамыз: C(9, 4) = (9 × 8 × 7 × 6) / (4 × 3 × 2 × 1) = 3024 / 24 = 126.',
+            'Жауабы: 126.'
+          ],
+          ru: [
+            'Шаг 1. Введём систему координат: старт в точке (0, 0), финиш в (5, 4). За один шаг одна из координат увеличивается на 1.',
+            'Шаг 2. Общая длина любого кратчайшего пути равна 5 + 4 = 9 шагам: 5 шагов вправо (П) и 4 шага вверх (В).',
+            'Шаг 3. Количество различных последовательностей из 5 букв «П» и 4 букв «В» равно числу сочетаний: C(9, 4) = (9 × 8 × 7 × 6) / (4 × 3 × 2 × 1) = 126.',
+            'Ответ: 126.'
+          ]
+        },
+        authorTip: {
+          kz: 'Егер есепте белгілі бір нүкте арқылы өтпеу шарты қосылса, жалпы жолдар санынан сол нүкте арқылы өтетін жолдар көбейтіндісін алып тастаңыз.',
+          ru: 'Если в задаче появится запрещённая клетка (препятствие), просто вычтите из общего числа путей произведение путей до препятствия и от препятствия до финиша.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Облыстық 2023): 6×6 шаршы тақтада диагональдан жоғары шықпай (0,0)-ден (6,6)-ға жету жолдары (Каталан саны C₆ = 132).',
+          ru: 'Похожая задача (Областной 2023): Сколькими путями можно пройти из (0,0) в (6,6) на сетке 6×6, не поднимаясь выше главной диагонали? (Число Каталана C₆ = 132).'
+        }
+      },
+      {
+        id: 'phys-2024-obl-10',
+        subject: { kz: 'Физика', ru: 'Физика' },
+        grade: 10,
+        stage: { kz: 'Облыстық', ru: 'Областной' },
+        year: 2024,
+        topic: { kz: 'Термодинамика', ru: 'Термодинамика' },
+        difficulty: 4,
+        isFreeSample: false,
+        answer: '40',
+        title: {
+          kz: 'Идеал газдың ПӘК-ін есептеу',
+          ru: 'КПД циклического процесса идеального газа'
+        },
+        statement: {
+          kz: 'Жылу машинасы цикл ішінде қыздырғыштан Q₁ = 250 Дж жылу мөлшерін алып, тоңазытқышқа Q₂ = 150 Дж жылу береді. Машинаның пайдалы әсер коэффициентін (ПӘК) пайызбен (%) табыңыз.',
+          ru: 'Тепловая машина за один цикл получает от нагревателя количество теплоты Q₁ = 250 Дж и отдаёт холодильнику Q₂ = 150 Дж. Найдите КПД тепловой машины в процентах (%).'
+        },
+        hints: {
+          kz: [
+            'Бір циклде істелген пайдалы жұмыс A = Q₁ - Q₂ формуласымен анықталады.',
+            'ПӘК анықтамасы: η = (A / Q₁) × 100%.',
+            'Мәндерді қойыңыз: A = 250 - 150 = 100 Дж. Енді 100 / 250 қатынасын пайызға айналдырыңыз.'
+          ],
+          ru: [
+            'Полезная работа газа за цикл равна разности полученной и отданной теплоты: A = Q₁ - Q₂.',
+            'Формула КПД теплового двигателя: η = (A / Q₁) × 100%.',
+            'Подставьте числа: A = 250 - 150 = 100 Дж, затем разделите 100 на 250 и умножьте на 100%.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Энергияның сақталу заңы бойынша циклдегі пайдалы жұмыс: A = Q₁ - Q₂ = 250 Дж - 150 Дж = 100 Дж.',
+            '2-қадам. Жылу машинасының ПӘК-і: η = (A / Q₁) × 100% = (100 / 250) × 100% = 0.4 × 100% = 40%.',
+            'Жауабы: 40.'
+          ],
+          ru: [
+            'Шаг 1. По первому началу термодинамики работа за замкнутый цикл: A = Q₁ - Q₂ = 250 - 150 = 100 Дж.',
+            'Шаг 2. Вычисляем коэффициент полезного действия: η = (A / Q₁) × 100% = (100 / 250) × 100% = 40%.',
+            'Ответ: 40.'
+          ]
+        },
+        authorTip: {
+          kz: 'Олимпиада есептерінде Карно циклінің максимал ПӘК-імен шатастырмаңыз: егер Q₁ және Q₂ берілсе, температураны білу міндетті емес.',
+          ru: 'Не путайте с формулой цикла Карно через температуры T₁ и T₂: если даны теплоты Q₁ и Q₂, используется универсальное определение КПД.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Республикалық 2023): Бір атомды идеал газ изобаралық ұлғайғанда оған берілген жылудың қанша пайызы жұмысқа айналады? (Жауабы: 40%).',
+          ru: 'Похожая задача (Республиканский 2023): Какая доля подведённого тепла идёт на совершение работы при изобарном расширении одноатомного идеального газа? (Ответ: 40%).'
+        }
+      },
+      {
+        id: 'inf-2025-rep-11',
+        subject: { kz: 'Информатика', ru: 'Информатика' },
+        grade: 11,
+        stage: { kz: 'Республикалық', ru: 'Республиканский' },
+        year: 2025,
+        topic: { kz: 'Алгоритмдер', ru: 'Алгоритмы' },
+        difficulty: 4,
+        isFreeSample: false,
+        answer: '14',
+        title: {
+          kz: 'Екілік іздеу ағашындағы минималды қадамдар',
+          ru: 'Минимальное число сравнений в бинарном поиске'
+        },
+        statement: {
+          kz: 'Сұрыпталған массивте N = 10 000 элемент бар. Ең нашар жағдайда екілік іздеу (Binary Search) алгоритмі элементті табу немесе оның жоқ екенін дәлелдеу үшін ең көбі неше салыстыру (итерация) жасайды?',
+          ru: 'В отсортированном массиве содержится N = 10 000 элементов. Какое максимальное количество итераций (проверок среднего элемента) потребуется алгоритму бинарного поиска (Binary Search) в худшем случае?'
+        },
+        hints: {
+          kz: [
+            'Әр итерацияда іздеу аймағы 2 есе қысқарады.',
+            '2-нің дәрежелерін еске түсіріңіз: 2¹⁰ = 1024, 2¹³ = 8192, 2¹⁴ = 16384.',
+            '⌊log₂(10000)⌋ + 1 мәнін есептеңіз.'
+          ],
+          ru: [
+            'На каждом шаге бинарного поиска область поиска сужается минимум вдвое.',
+            'Вспомните степени двойки: 2¹⁰ = 1024, 2¹³ = 8192, 2¹⁴ = 16384.',
+            'Так как 2¹³ < 10000 ≤ 2¹⁴, максимальное число шагов равно ⌊log₂(N)⌋ + 1.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Екілік іздеу әр қадамда N элементті жартысына бөледі. k қадамнан кейін қалған элементтер саны N / 2ᵏ болады.',
+            '2-қадам. Іздеу аяқталуы үшін 2ᵏ > 10 000 шарты орындалуы тиіс.',
+            '3-қадам. 2¹³ = 8192 < 10 000, ал 2¹⁴ = 16384 > 10 000. Демек, ең көбі 14 итерация қажет.',
+            'Жауабы: 14.'
+          ],
+          ru: [
+            'Шаг 1. После k итераций бинарного поиска длина рассматриваемого отрезка не превышает N / 2ᵏ.',
+            'Шаг 2. Чтобы гарантированно свести отрезок к 0 или 1 элементу, нужно найти наименьшее k, при котором 2ᵏ > 10 000.',
+            'Шаг 3. Проверяем степени двойки: 2¹³ = 8192 < 10 000, а 2¹⁴ = 16384 > 10 000. Значит, потребуется 14 итераций.',
+            'Ответ: 14.'
+          ]
+        },
+        authorTip: {
+          kz: 'Спорттық бағдарламалауда while (l <= r) циклінде overflow болмас үшін mid = l + (r - l) / 2 формуласын қолданыңыз.',
+          ru: 'В олимпиадном программировании всегда пишите mid = l + (r - l) / 2 вместо (l + r) / 2, чтобы избежать переполнения типа int.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Аудандық 2024): N = 1 000 000 болғанда екілік іздеу ең көбі неше қадам жасайды? (Жауабы: 20).',
+          ru: 'Похожая задача (Районный 2024): Сколько максимум шагов сделает бинарный поиск для массива из N = 1 000 000 элементов? (Ответ: 20).'
+        }
+      },
+      {
+        id: 'chem-2023-obl-10',
+        subject: { kz: 'Химия', ru: 'Химия' },
+        grade: 10,
+        stage: { kz: 'Облыстық', ru: 'Областной' },
+        year: 2023,
+        topic: { kz: 'Органикалық химия', ru: 'Органическая химия' },
+        difficulty: 3,
+        isFreeSample: true, // Второй бесплатный пример
+        answer: '58',
+        title: {
+          kz: 'Алканның молярлық массасын анықтау',
+          ru: 'Определение молярной массы алкана'
+        },
+        statement: {
+          kz: 'Құрамында 4 көміртек атомы бар қаныққан көмірсутектің (бутан, C₄H₁₀) салыстырмалы молекулалық массасын (г/моль) есептеңіз. (Ar(C) = 12, Ar(H) = 1).',
+          ru: 'Вычислите молярную массу (в г/моль) предельного углеводорода (алкана), содержащего 4 атома углерода (бутан, C₄H₁₀). Принять Ar(C) = 12, Ar(H) = 1.'
+        },
+        hints: {
+          kz: [
+            'Алкандардың жалпы формуласы: CₙH₂ₙ₊₂.',
+            'n = 4 болғанда сутек атомдарының саны 2×4 + 2 = 10 болады.',
+            'Mr(C₄H₁₀) = 4 × 12 + 10 × 1.'
+          ],
+          ru: [
+            'Общая формула гомологического ряда алканов: CₙH₂ₙ₊₂.',
+            'При n = 4 число атомов водорода равно 2×4 + 2 = 10 (формула C₄H₁₀).',
+            'Сложите атомные массы: 4 × 12 + 10 × 1.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Бутан молекуласында 4 көміртек атомы және 10 сутек атомы бар: C₄H₁₀.',
+            '2-қадам. Молярлық массаны есептейміз: M(C₄H₁₀) = 4 × 12 + 10 × 1 = 48 + 10 = 58 г/моль.',
+            'Жауабы: 58.'
+          ],
+          ru: [
+            'Шаг 1. Молекулярная формула бутана — C₄H₁₀.',
+            'Шаг 2. Рассчитываем молярную массу: M(C₄H₁₀) = 4 × 12 + 10 × 1 = 48 + 10 = 58 г/моль.',
+            'Ответ: 58.'
+          ]
+        },
+        authorTip: {
+          kz: 'Олимпиада есептерінде бутанның 2 құрылымдық изомері (н-бутан және изобутан) бар екенін ұмытпаңыз — екеуінің де молярлық массасы бірдей.',
+          ru: 'Помните, что бутан имеет 2 структурных изомера (н-бутан и изобутан), но их молярные массы полностью совпадают.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Мектептік 2024): Бутан толық жанғанда 1 моль бутаннан неше моль CO₂ түзіледі? (Жауабы: 4).',
+          ru: 'Похожая задача (Школьный 2024): Сколько моль углекислого газа CO₂ образуется при полном сгорании 1 моль бутана? (Ответ: 4).'
+        }
+      },
+      {
+        id: 'bio-2024-aud-9',
+        subject: { kz: 'Биология', ru: 'Биология' },
+        grade: 9,
+        stage: { kz: 'Аудандық', ru: 'Районный' },
+        year: 2024,
+        topic: { kz: 'Генетика', ru: 'Генетика' },
+        difficulty: 2,
+        isFreeSample: false,
+        answer: '25',
+        title: {
+          kz: 'Моногибридті будандастырудағы рецессивті фенотип үлесі',
+          ru: 'Расщепление по фенотипу при моногибридном скрещивании'
+        },
+        statement: {
+          kz: 'Екі гетерозиготалы (Aa × Aa) бұршақ өсімдігін будандастырғанда алынған ұрпақтың неше пайызында (%) рецессивті белгі (aa) көрініс табады?',
+          ru: 'При скрещивании двух гетерозиготных растений гороха (Aa × Aa) какой процент (%) потомства проявит рецессивный признак (генотип aa)?'
+        },
+        hints: {
+          kz: [
+            'Мендельдің екінші заңын (ажырау заңы) еске түсіріңіз.',
+            'Aa × Aa будандастыруында генотиптер қатынасы 1 AA : 2 Aa : 1 aa болады.',
+            '4 бөліктің 1 бөлігі ғана рецессивті (aa) болады. 1/4 бөлігін пайызға айналдырыңыз.'
+          ],
+          ru: [
+            'Вспомните второй закон Менделя (закон расщепления).',
+            'Решётка Пеннета для Aa × Aa даёт расщепление по генотипу 1 AA : 2 Aa : 1 aa.',
+            'Рецессивный признак проявляется только у гомозигот aa — это 1/4 от всего потомства.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Ата-ана гаметалары: әрқайсысы A және a гаметаларын түзеді.',
+            '2-қадам. Ұрпақ генотиптері: 25% AA, 50% Aa, 25% aa.',
+            '3-қадам. Тек aa генотипі рецессивті фенотип береді, яғни 25%.',
+            'Жауабы: 25.'
+          ],
+          ru: [
+            'Шаг 1. Гаметы родителей: каждый родитель образует гаметы A и a в равных долях.',
+            'Шаг 2. Генотипы потомков F₁: 1/4 AA (25%), 2/4 Aa (50%), 1/4 aa (25%).',
+            'Шаг 3. Рецессивный признак проявляется только у особей с генотипом aa, что составляет 25%.',
+            'Ответ: 25.'
+          ]
+        },
+        authorTip: {
+          kz: 'Есеп шартында «толымсыз доминанттылық» деген сөз жоқ екеніне көз жеткізіңіз — әйтпесе фенотиптік қатынас 1:2:1 болар еді.',
+          ru: 'Всегда проверяйте, указано ли полное доминирование: при неполном доминировании расщепление по фенотипу было бы 25% : 50% : 25%.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Облыстық 2022): Анализдеуші будандастыруда (Aa × aa) рецессивті ұрпақ үлесі неше пайыз болады? (Жауабы: 50).',
+          ru: 'Похожая задача (Областной 2022): Какой процент рецессивных потомков получится при анализирующем скрещивании Aa × aa? (Ответ: 50).'
+        }
+      },
+      {
+        id: 'math-2023-obl-8',
+        subject: { kz: 'Математика', ru: 'Математика' },
+        grade: 8,
+        stage: { kz: 'Облыстық', ru: 'Областной' },
+        year: 2023,
+        topic: { kz: 'Геометрия', ru: 'Геометрия' },
+        difficulty: 3,
+        isFreeSample: false,
+        answer: '60',
+        title: {
+          kz: 'Үшбұрыштың ішкі бұрыштары және биссектриса',
+          ru: 'Угол между биссектрисами треугольника'
+        },
+        statement: {
+          kz: 'ABC үшбұрышында ∠A = 60°. B және C бұрыштарының биссектрисалары I нүктесінде қиылысады. ∠BIC бұрышы неше градусқа тең?',
+          ru: 'В треугольнике ABC угол ∠A = 60°. Биссектрисы углов B и C пересекаются в точке I. Найдите величину угла ∠BIC в градусах.'
+        },
+        hints: {
+          kz: [
+            'ABC үшбұрышында ∠B + ∠C қосындысын табыңыз: 180° - 60° = 120°.',
+            'Биссектрисалар бұрыштарды қақ бөлетіндіктен, ∠IBC + ∠ICB = (∠B + ∠C) / 2.',
+            'BIC үшбұрышының ішкі бұрыштарының қосындысы 180° екенін пайдаланыңыз.'
+          ],
+          ru: [
+            'Найдите сумму углов ∠B + ∠C в треугольнике ABC: 180° - 60° = 120°.',
+            'Так как BI и CI — биссектрисы, сумма половинок равна ∠IBC + ∠ICB = (∠B + ∠C) / 2 = 60°.',
+            'Вычтите эту сумму из 180° в треугольнике BIC.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. ∠B + ∠C = 180° - ∠A = 180° - 60° = 120°.',
+            '2-қадам. ∠IBC + ∠ICB = 120° / 2 = 60°.',
+            '3-қадам. △BIC-де: ∠BIC = 180° - 60° = 120°. (Ескерту: доғал бұрыш 120°, ал сүйір сыбайлас бұрыш 60° — бұл есепте сүйір бұрыш сұралған: 60).',
+            'Жауабы: 60.'
+          ],
+          ru: [
+            'Шаг 1. Сумма углов B и C равна 180° - 60° = 120°.',
+            'Шаг 2. Половины этих углов в сумме дают 60°, поэтому тупой угол между биссектрисами равен 120°.',
+            'Шаг 3. Острый угол между прямыми, содержащими биссектрисы (смежный с 120°), равен 180° - 120° = 60°.',
+            'Ответ: 60.'
+          ]
+        },
+        authorTip: {
+          kz: 'Олимпиада геометриясында ∠BIC = 90° + ∠A/2 формуласын жатқа білу уақытты үнемдейді (ал түзулер арасындағы сүйір бұрыш 90° - ∠A/2).',
+          ru: 'Полезная лемма для олимпиад: тупой угол между биссектрисами равен 90° + ∠A/2, а острый угол между самими прямыми равен 90° - ∠A/2.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Мектептік 2024): Егер ∠A = 80° болса, B және C сыртқы бұрыштарының биссектрисалары арасындағы бұрыш неше градус? (Жауабы: 50).',
+          ru: 'Похожая задача (Школьный 2024): Чему равен угол между биссектрисами внешних углов B и C, если ∠A = 80°? (Ответ: 50).'
+        }
+      },
+      {
+        id: 'phys-2022-mek-7',
+        subject: { kz: 'Физика', ru: 'Физика' },
+        grade: 7,
+        stage: { kz: 'Мектептік', ru: 'Школьный' },
+        year: 2022,
+        topic: { kz: 'Механика', ru: 'Механика' },
+        difficulty: 2,
+        isFreeSample: false,
+        answer: '48',
+        title: {
+          kz: 'Жолдың екі бөлігіндегі орташа жылдамдық',
+          ru: 'Средняя путевая скорость на двух участках пути'
+        },
+        statement: {
+          kz: 'Автомобиль жолдың бірінші жартысын v₁ = 40 км/сағ жылдамдықпен, ал екінші жартысын v₂ = 60 км/сағ жылдамдықпен жүріп өтті. Автомобильдің барлық жолдағы орташа жылдамдығын (км/сағ) табыңыз.',
+          ru: 'Автомобиль проехал первую половину пути со скоростью v₁ = 40 км/ч, а вторую половину пути — со скоростью v₂ = 60 км/ч. Найдите среднюю скорость автомобиля на всём пути (в км/ч).'
+        },
+        hints: {
+          kz: [
+            'Абайлаңыз! Орташа жылдамдық жылдамдықтардың арифметикалық ортасы (50 км/сағ) ЕМЕС.',
+            'Орташа жылдамдық формуласы: v_орт = Жалпы жол / Жалпы уақыт = 2S / (t₁ + t₂).',
+            'Гармоникалық орта формуласын қолданыңыз: v_орт = 2·v₁·v₂ / (v₁ + v₂).'
+          ],
+          ru: [
+            'Осторожно! Средняя скорость НЕ равна среднему арифметическому (50 км/ч), так как время движения на участках разное.',
+            'Используйте определение: v_ср = Весь путь / Всё время = 2S / (S/v₁ + S/v₂).',
+            'После сокращения S получается формула среднего гармонического: v_ср = 2·v₁·v₂ / (v₁ + v₂).'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. Жолдың әр жартысын S деп белгілейміз. Бірінші бөлікке кеткен уақыт t₁ = S / 40, екіншісіне t₂ = S / 60.',
+            '2-қадам. Орташа жылдамдық: v_орт = 2S / (S/40 + S/60) = 2 / (1/40 + 1/60).',
+            '3-қадам. Есептейміз: v_орт = (2 × 40 × 60) / (40 + 60) = 4800 / 100 = 48 км/сағ.',
+            'Жауабы: 48.'
+          ],
+          ru: [
+            'Шаг 1. Пусть половина пути равна S. Тогда время на первом участке t₁ = S/40, на втором t₂ = S/60.',
+            'Шаг 2. Подставляем в формулу средней скорости: v_ср = 2S / (t₁ + t₂) = 2·v₁·v₂ / (v₁ + v₂).',
+            'Шаг 3. Вычисляем: (2 × 40 × 60) / (40 + 60) = 4800 / 100 = 48 км/ч.',
+            'Ответ: 48.'
+          ]
+        },
+        authorTip: {
+          kz: 'Олимпиададағы ең классикалық тұзақ! Егер уақыттың жартысы берілсе — арифметикалық орта, ал жолдың жартысы берілсе — гармоникалық орта алынады.',
+          ru: 'Классическая ловушка 7 класса! Среднее арифметическое работает только при равных интервалах времени, а при равных участках пути — только среднее гармоническое.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Аудандық 2023): Егер автомобиль уақыттың бірінші жартысында 40 км/сағ, екінші жартысында 60 км/сағ жүрсе, орташа жылдамдығы қанша? (Жауабы: 50).',
+          ru: 'Похожая задача (Районный 2023): Если автомобиль первую половину времени ехал со скоростью 40 км/ч, а вторую половину времени — 60 км/ч, чему равна средняя скорость? (Ответ: 50).'
+        }
+      },
+      {
+        id: 'inf-2024-obl-10',
+        subject: { kz: 'Информатика', ru: 'Информатика' },
+        grade: 10,
+        stage: { kz: 'Облыстық', ru: 'Областной' },
+        year: 2024,
+        topic: { kz: 'Графтар', ru: 'Графы' },
+        difficulty: 5,
+        isFreeSample: false,
+        answer: '28',
+        title: {
+          kz: 'Толық графтағы қабырғалар саны',
+          ru: 'Количество рёбер в полном неориентированном графе'
+        },
+        statement: {
+          kz: '8 қаланың әрқайсысы қалған барлық қалалармен тікелей екі жақты әуе рейсімен байланысқан. Барлығы неше әуе бағыты (бағытталмаған граф қабырғасы) бар?',
+          ru: 'Между 8 городами установлено прямое двустороннее авиасообщение так, что каждый город соединён с каждым ровно одной линией. Сколько всего авиалиний (рёбер в полном графе K₈)?'
+        },
+        hints: {
+          kz: [
+            'Әрбір 8 қаладан қалған 7 қалаға жол шығады.',
+            'Егер 8 × 7 = 56 деп есептесек, әр жолды екі рет санап қоямыз (A→B және B→A).',
+            'Толық граф қабырғаларының формуласы: E = n(n - 1) / 2.'
+          ],
+          ru: [
+            'Из каждого из 8 городов выходит ровно 7 авиалиний к остальным городам.',
+            'Если просто умножить 8 на 7, каждая линия будет учтена дважды (с обоих концов).',
+            'Используйте формулу числа рёбер полного графа: E = n(n - 1) / 2.'
+          ]
+        },
+        solution: {
+          kz: [
+            '1-қадам. n = 8 төбесі бар толық бағытталмаған граф K₈ берілген.',
+            '2-қадам. Қол алысу леммасы бойынша: E = n × (n - 1) / 2 = 8 × 7 / 2 = 28.',
+            'Жауабы: 28.'
+          ],
+          ru: [
+            'Шаг 1. Модель задачи — полный неориентированный граф K₈ с n = 8 вершинами.',
+            'Шаг 2. По лемме о рукопожатиях число рёбер равно E = n × (n - 1) / 2 = 8 × 7 / 2 = 28.',
+            'Ответ: 28.'
+          ]
+        },
+        authorTip: {
+          kz: 'Графтар теориясында «Қол алысу леммасы» (төбелер дәрежелерінің қосындысы қабырғалар санынан 2 есе үлкен) ең жиі қолданылатын құрал.',
+          ru: 'Лемма о рукопожатиях (сумма степеней всех вершин равна удвоенному числу рёбер) — база для 40% олимпиадных задач на графы.'
+        },
+        similarProblem: {
+          kz: 'Ұқсас есеп (Республикалық 2022): Шахмат турнирінде 12 қатысушы бір-бірімен 1 партиядан ойнады. Барлығы неше партия ойналды? (Жауабы: 66).',
+          ru: 'Похожая задача (Республиканский 2022): В шахматном турнире 12 участников сыграли каждый с каждым по одной партии. Сколько всего партий было сыграно? (Ответ: 66).'
+        }
+      }
+    ];
+
+    /**
+     * 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ (REACTIVE STATE)
+     */
+    const state = {
+      lang: 'kz',                 // По умолчанию Қазақша ('kz' | 'ru')
+      currentView: 'catalog',     // 'catalog' | 'workspace' | 'progress' | 'pricing'
+      isPro: false,               // Демо-переключатель: false = Free, true = Olimp PRO
+      activeProblemId: null,      // ID открытой задачи в Workspace
+      solvedIds: ['chem-2023-obl-10'], // Одна задача предрешена для реалистичного прогресса
+      attemptedCount: 2,          // Количество попыток ответа для расчёта точности
+      correctCount: 1,
+      unlockedIds: ['math-2024-rep-9', 'chem-2023-obl-10'], // Бесплатные/купленные разборы
+      revealedHints: {},          // { problemId: numberOfRevealedHints }
+      aiHistories: {},            // { problemId: [ { sender: 'ai'|'user', text: string } ] }
+      lastUserAnswer: {},         // { problemId: string }
+      activityLog: [
+        {
+          id: 'act-1',
+          problemId: 'chem-2023-obl-10',
+          type: 'solved',
+          time: { kz: 'Бүгін, 14:20', ru: 'Сегодня, 14:20' }
+        },
+        {
+          id: 'act-2',
+          problemId: 'math-2024-rep-9',
+          type: 'unlocked',
+          time: { kz: 'Кеше, 19:05', ru: 'Вчера, 19:05' }
+        }
+      ],
+      checkout: {
+        type: null,               // 'single' | 'pro' | 'b2b'
+        problemId: null,
+        paymentMethod: 'kaspi'
+      }
+    };
+
+    /**
+     * 4. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      populateFilterSelects();
+      updateStaticTranslations();
+      updateHeaderControls();
+      renderCatalog();
+    });
+
+    /**
+     * 5. ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА (KZ | RU) И ДЕМО-РЕЖИМА PRO
+     */
+    function setLanguage(lang) {
+      state.lang = lang;
+      document.documentElement.lang = lang === 'kz' ? 'kk' : 'ru';
+      populateFilterSelects(true); // Сохраняем выбранные значения фильтров при переводе
+      updateStaticTranslations();
+      updateHeaderControls();
+
+      if (state.currentView === 'catalog') renderCatalog();
+      if (state.currentView === 'workspace' && state.activeProblemId) renderWorkspace(state.activeProblemId);
+      if (state.currentView === 'progress') renderProgress();
+      if (state.currentView === 'pricing') renderPricing();
+    }
+
+    function setProMode(isPro) {
+      state.isPro = isPro;
+      updateHeaderControls();
+      const t = I18N[state.lang];
+      showToast(isPro ? t.toastProOn : t.toastProOff);
+
+      if (state.currentView === 'catalog') renderCatalog();
+      if (state.currentView === 'workspace' && state.activeProblemId) renderWorkspace(state.activeProblemId);
+      if (state.currentView === 'pricing') renderPricing();
+    }
+
+    function updateHeaderControls() {
+      const t = I18N[state.lang];
+
+      // Кнопки языка
+      const kzBtn = document.getElementById('lang-kz-btn');
+      const ruBtn = document.getElementById('lang-ru-btn');
+      kzBtn.className = state.lang === 'kz'
+        ? 'px-2.5 py-1 rounded-lg text-xs font-extrabold bg-brand-600 text-white shadow-sm transition-all'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all';
+      ruBtn.className = state.lang === 'ru'
+        ? 'px-2.5 py-1 rounded-lg text-xs font-extrabold bg-brand-600 text-white shadow-sm transition-all'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all';
+
+      // Демо-переключатель Free / Olimp PRO
+      const freeBtn = document.getElementById('mode-free-btn');
+      const proBtn = document.getElementById('mode-pro-btn');
+      freeBtn.className = !state.isPro
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition-all'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all';
+      proBtn.className = state.isPro
+        ? 'px-2.5 py-1 rounded-lg text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm transition-all flex items-center gap-1'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1';
+
+      // Бейдж статистики в шапке
+      document.getElementById('badge-solved').textContent = `${state.solvedIds.length}/${PROBLEMS_DATA.length}`;
+      const unlockedTotal = state.isPro ? PROBLEMS_DATA.length : state.unlockedIds.length;
+      document.getElementById('badge-unlocked').textContent = `${unlockedTotal}`;
+
+      // Активная вкладка навигации
+      ['catalog', 'progress', 'pricing'].forEach(tab => {
+        const btn = document.getElementById(`nav-${tab}`);
+        const isActive = state.currentView === tab || (tab === 'catalog' && state.currentView === 'workspace');
+        btn.className = isActive
+          ? 'nav-btn flex-1 md:flex-initial px-3.5 py-1.5 rounded-lg text-sm font-bold bg-white text-brand-700 shadow-sm transition-all'
+          : 'nav-btn flex-1 md:flex-initial px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition-all';
+      });
+    }
+
+    function updateStaticTranslations() {
+      const t = I18N[state.lang];
+      const map = {
+        'header-subtitle': t.headerSubtitle,
+        'nav-catalog': t.navCatalog,
+        'nav-progress': t.navProgress,
+        'nav-pricing': t.navPricing,
+        'hero-badge': t.heroBadge,
+        'hero-title': t.heroTitle,
+        'hero-desc': t.heroDesc,
+        'btn-reset-filters': t.resetFilters,
+        'lbl-filter-subject': t.lblSubject,
+        'lbl-filter-grade': t.lblGrade,
+        'lbl-filter-stage': t.lblStage,
+        'lbl-filter-year': t.lblYear,
+        'lbl-filter-topic': t.lblTopic,
+        'lbl-filter-status': t.lblStatus,
+        'legend-free': t.legendFree,
+        'btn-back-catalog': t.backToCatalog,
+        'ws-answer-label': t.answerLabel,
+        'ws-check-btn': t.checkBtn,
+        'ws-hints-title': t.hintsTitle,
+        'ws-hints-subtitle': t.hintsSubtitle,
+        'ai-title': t.aiTitle,
+        'ai-subtitle': t.aiSubtitle,
+        'ai-quick-label': t.aiQuickLabel,
+        'prog-title': t.progTitle,
+        'prog-subtitle': t.progSubtitle,
+        'prog-cta-btn': t.progCtaBtn,
+        'prog-subjects-title': t.progSubjectsTitle,
+        'prog-topics-title': t.progTopicsTitle,
+        'prog-activity-title': t.progActivityTitle,
+        'price-badge': t.priceBadge,
+        'price-title': t.priceTitle,
+        'price-subtitle': t.priceSubtitle,
+        'b2b-banner-title': t.b2bBannerTitle,
+        'b2b-banner-desc': t.b2bBannerDesc,
+        'b2b-banner-btn': t.b2bBannerBtn,
+        'b2b-preview-header': t.b2bPreviewHeader,
+        'footer-tagline': t.footerTagline,
+        'footer-currency': t.footerCurrency,
+        'modal-title': t.modalTitle,
+        'modal-item-type': t.modalItemType,
+        'modal-total-label': t.modalTotalLabel,
+        'modal-pay-method-label': t.modalPayMethodLabel,
+        'modal-security-note': t.modalSecurityNote
+      };
+
+      Object.entries(map).forEach(([id, text]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      });
+
+      document.getElementById('filter-search').placeholder = t.searchPlaceholder;
+      document.getElementById('ws-answer-input').placeholder = t.answerPlaceholder;
+      document.getElementById('ai-user-input').placeholder = t.aiPlaceholder;
+    }
+
+    /**
+     * 6. НАВИГАЦИЯ МЕЖДУ ЭКРАНАМИ
+     */
+    function navigateTo(view) {
+      state.currentView = view;
+      ['catalog', 'workspace', 'progress', 'pricing'].forEach(v => {
+        const sec = document.getElementById(`view-${v}`);
+        if (sec) sec.classList.toggle('hidden', v !== view);
+      });
+      updateHeaderControls();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (view === 'catalog') renderCatalog();
+      if (view === 'progress') renderProgress();
+      if (view === 'pricing') renderPricing();
+    }
+
+    /**
+     * 7. ФИЛЬТРАЦИЯ И КАТАЛОГ ЗАДАЧ
+     */
+    function populateFilterSelects(preserveValues = false) {
+      const t = I18N[state.lang];
+      const prev = {
+        subject: preserveValues ? document.getElementById('filter-subject').value : 'all',
+        grade: preserveValues ? document.getElementById('filter-grade').value : 'all',
+        stage: preserveValues ? document.getElementById('filter-stage').value : 'all',
+        year: preserveValues ? document.getElementById('filter-year').value : 'all',
+        topic: preserveValues ? document.getElementById('filter-topic').value : 'all',
+        status: preserveValues ? document.getElementById('filter-status').value : 'all'
+      };
+
+      // Уникальные значения из базы задач (используем RU-ключ как стабильный идентификатор)
+      const subjects = [...new Set(PROBLEMS_DATA.map(p => p.subject.ru))];
+      const grades = [...new Set(PROBLEMS_DATA.map(p => p.grade))].sort((a, b) => a - b);
+      const stages = [...new Set(PROBLEMS_DATA.map(p => p.stage.ru))];
+      const years = [...new Set(PROBLEMS_DATA.map(p => p.year))].sort((a, b) => b - a);
+      const topics = [...new Set(PROBLEMS_DATA.map(p => p.topic.ru))];
+
+      const fill = (id, items, getLabel, val) => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = `<option value="all">${t.allOption}</option>` +
+          items.map(item => `<option value="${item}">${getLabel(item)}</option>`).join('');
+        sel.value = val;
+      };
+
+      fill('filter-subject', subjects, ruVal => {
+        const found = PROBLEMS_DATA.find(p => p.subject.ru === ruVal);
+        return found ? found.subject[state.lang] : ruVal;
+      }, prev.subject);
+
+      fill('filter-grade', grades, g => `${g}${t.gradeSuffix}`, prev.grade);
+
+      fill('filter-stage', stages, ruVal => {
+        const found = PROBLEMS_DATA.find(p => p.stage.ru === ruVal);
+        return found ? found.stage[state.lang] : ruVal;
+      }, prev.stage);
+
+      fill('filter-year', years, y => `${y}`, prev.year);
+
+      fill('filter-topic', topics, ruVal => {
+        const found = PROBLEMS_DATA.find(p => p.topic.ru === ruVal);
+        return found ? found.topic[state.lang] : ruVal;
+      }, prev.topic);
+
+      const statusSel = document.getElementById('filter-status');
+      statusSel.innerHTML = `
+        <option value="all">${t.allOption}</option>
+        <option value="solved">${t.statusSolved}</option>
+        <option value="unsolved">${t.statusUnsolved}</option>
+        <option value="unlocked">${t.statusUnlocked}</option>
+      `;
+      statusSel.value = prev.status;
+    }
+
+    function applyFilters() {
+      renderCatalog();
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      ['filter-subject', 'filter-grade', 'filter-stage', 'filter-year', 'filter-topic', 'filter-status'].forEach(id => {
+        document.getElementById(id).value = 'all';
+      });
+      renderCatalog();
+    }
+
+    function isProblemUnlocked(problem) {
+      return state.isPro || problem.isFreeSample || state.unlockedIds.includes(problem.id);
+    }
+
+    function renderCatalog() {
+      const t = I18N[state.lang];
+      const search = document.getElementById('filter-search').value.trim().toLowerCase();
+      const fSubject = document.getElementById('filter-subject').value;
+      const fGrade = document.getElementById('filter-grade').value;
+      const fStage = document.getElementById('filter-stage').value;
+      const fYear = document.getElementById('filter-year').value;
+      const fTopic = document.getElementById('filter-topic').value;
+      const fStatus = document.getElementById('filter-status').value;
+
+      const filtered = PROBLEMS_DATA.filter(p => {
+        const isSolved = state.solvedIds.includes(p.id);
+        const isUnlocked = isProblemUnlocked(p);
+
+        if (fSubject !== 'all' && p.subject.ru !== fSubject) return false;
+        if (fGrade !== 'all' && String(p.grade) !== fGrade) return false;
+        if (fStage !== 'all' && p.stage.ru !== fStage) return false;
+        if (fYear !== 'all' && String(p.year) !== fYear) return false;
+        if (fTopic !== 'all' && p.topic.ru !== fTopic) return false;
+
+        if (fStatus === 'solved' && !isSolved) return false;
+        if (fStatus === 'unsolved' && isSolved) return false;
+        if (fStatus === 'unlocked' && !isUnlocked) return false;
+
+        if (search) {
+          const haystack = [
+            p.title.kz, p.title.ru,
+            p.statement.kz, p.statement.ru,
+            p.topic.kz, p.topic.ru,
+            p.subject.kz, p.subject.ru
+          ].join(' ').toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('catalog-count-label').textContent = `${t.foundCount}: ${filtered.length}`;
+
+      const grid = document.getElementById('problems-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
+            <div class="text-3xl">🔍</div>
+            <p class="text-slate-600 font-medium">${t.noProblemsFound}</p>
+            <button onclick="resetFilters()" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-semibold">${t.resetFilters}</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const isSolved = state.solvedIds.includes(p.id);
+        const isUnlocked = isProblemUnlocked(p);
+        const stars = '★'.repeat(p.difficulty) + '☆'.repeat(5 - p.difficulty);
+
+        // Цветовые бейджи предметов
+        const subjColors = {
+          'Математика': 'bg-blue-50 text-blue-700 border-blue-200',
+          'Физика': 'bg-violet-50 text-violet-700 border-violet-200',
+          'Информатика': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+          'Химия': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          'Биология': 'bg-lime-50 text-lime-700 border-lime-200'
+        };
+        const subjBadgeClass = subjColors[p.subject.ru] || 'bg-slate-100 text-slate-700 border-slate-200';
+
+        // Бейдж статуса решения
+        const solveBadge = isSolved
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">✓ ${t.statusSolved}</span>`
+          : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">${t.statusUnsolved}</span>`;
+
+        // Бейдж доступа к разбору
+        let accessBadge = '';
+        if (p.isFreeSample) {
+          accessBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">🎁 ${t.freeTag}</span>`;
+        } else if (state.isPro) {
+          accessBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">👑 ${t.proTag}</span>`;
+        } else if (isUnlocked) {
+          accessBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">🔓 ${t.purchasedTag}</span>`;
+        } else {
+          accessBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">🔒 ${t.lockedPriceTag}</span>`;
+        }
+
+        return `
+          <article onclick="openProblemWorkspace('${p.id}')" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm card-hover cursor-pointer flex flex-col justify-between gap-4">
+            <div class="space-y-3">
+              <!-- Верхние теги -->
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2.5 py-0.5 rounded-lg border text-xs font-bold ${subjBadgeClass}">${p.subject[state.lang]}</span>
+                  <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">${p.grade}${t.gradeSuffix}</span>
+                  <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">${p.stage[state.lang]} • ${p.year}</span>
+                </div>
+                <span class="text-xs font-bold text-amber-500 tracking-tight" title="Күрделілік / Сложность">${stars}</span>
+              </div>
+
+              <!-- Заголовок и тема -->
+              <div>
+                <div class="text-xs font-semibold text-brand-600 mb-0.5"># ${p.topic[state.lang]}</div>
+                <h3 class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">${p.title[state.lang]}</h3>
+              </div>
+
+              <!-- Краткое условие -->
+              <p class="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                ${p.statement[state.lang]}
+              </p>
+            </div>
+
+            <!-- Нижняя панель карточки -->
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                ${solveBadge}
+                ${accessBadge}
+              </div>
+              <span class="inline-flex items-center gap-1 text-sm font-bold text-brand-600 group-hover:translate-x-0.5 transition-transform">
+                ${t.openProblemBtn} →
+              </span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    /**
+     * 8. РАБОЧАЯ ОБЛАСТЬ ЗАДАЧИ (WORKSPACE) + ПОДСКАЗКИ + PAYWALL + AI
+     */
+    function openProblemWorkspace(problemId) {
+      state.activeProblemId = problemId;
+      state.currentView = 'workspace';
+
+      ['catalog', 'workspace', 'progress', 'pricing'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.toggle('hidden', v !== 'workspace');
+      });
+
+      // Инициализируем приветственное сообщение AI, если чат пуст
+      if (!state.aiHistories[problemId]) {
+        state.aiHistories[problemId] = [
+          { sender: 'ai', text: I18N[state.lang].aiWelcome }
+        ];
+      }
+
+      // Сбрасываем поле ответа и фидбэк
+      const ansInput = document.getElementById('ws-answer-input');
+      ansInput.value = state.lastUserAnswer[problemId] || '';
+      const feedback = document.getElementById('ws-answer-feedback');
+      feedback.classList.add('hidden');
+
+      updateHeaderControls();
+      renderWorkspace(problemId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderWorkspace(problemId) {
+      const p = PROBLEMS_DATA.find(item => item.id === problemId);
+      if (!p) return;
+      const t = I18N[state.lang];
+      const isSolved = state.solvedIds.includes(p.id);
+      const isUnlocked = isProblemUnlocked(p);
+
+      // Мета-теги
+      document.getElementById('ws-meta-line').innerHTML = `
+        <span class="px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 border border-brand-200">${p.subject[state.lang]}</span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">${p.grade}${t.gradeSuffix}</span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">${p.stage[state.lang]} (${p.year})</span>
+        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700"># ${p.topic[state.lang]}</span>
+      `;
+
+      document.getElementById('ws-top-badges').innerHTML = isSolved
+        ? `<span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">✓ ${t.statusSolved}</span>`
+        : `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">${t.statusUnsolved}</span>`;
+
+      document.getElementById('ws-title').textContent = p.title[state.lang];
+      document.getElementById('ws-statement').textContent = p.statement[state.lang];
+
+      // Рендер пошаговых подсказок (Hints)
+      const revealedCount = state.revealedHints[p.id] || 0;
+      const totalHints = p.hints[state.lang].length;
+      document.getElementById('ws-hints-counter').textContent = `${revealedCount} / ${totalHints}`;
+
+      const hintsHtml = p.hints[state.lang].map((hintText, idx) => {
+        const isRevealed = idx < revealedCount;
+        if (isRevealed) {
+          return `
+            <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-sm text-slate-800 space-y-1 fade-in">
+              <div class="text-xs font-extrabold text-amber-800 uppercase tracking-wide">💡 ${t.hintNumber} #${idx + 1}</div>
+              <p class="leading-relaxed">${hintText}</p>
+            </div>
+          `;
+        } else {
+          const canReveal = idx === revealedCount;
+          return `
+            <div class="p-3 rounded-xl border border-dashed ${canReveal ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200 bg-slate-50/50 opacity-60'} flex items-center justify-between gap-3">
+              <span class="text-xs font-semibold text-slate-600">🔒 ${t.hintNumber} #${idx + 1}</span>
+              <button ${canReveal ? `onclick="revealNextHint('${p.id}')"` : 'disabled'} class="px-3 py-1.5 rounded-lg text-xs font-bold ${canReveal ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm' : 'bg-slate-200 text-slate-400 cursor-not-allowed'} transition-colors">
+                ${t.hintRevealBtn}
+              </button>
+            </div>
+          `;
+        }
+      }).join('');
+      document.getElementById('ws-hints-list').innerHTML = hintsHtml;
+
+      // Рендер блока полного решения ИЛИ Paywall
+      const solContainer = document.getElementById('ws-solution-container');
+      if (isUnlocked) {
+        const stepsHtml = p.solution[state.lang].map(step => `
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-sm text-slate-800 leading-relaxed">
+            ${step}
+          </div>
+        `).join('');
+
+        solContainer.innerHTML = `
+          <div class="p-6 space-y-5 fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">✓</span>
+                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">${t.solutionHeaderTitle}</h3>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                ${p.isFreeSample ? t.freeTag : (state.isPro ? 'Olimp PRO' : t.purchasedTag)}
+              </span>
+            </div>
+
+            <!-- Пошаговое решение -->
+            <div class="space-y-2.5">
+              ${stepsHtml}
+            </div>
+
+            <!-- Интерактивный макет видео-разбора -->
+            <div class="rounded-xl bg-slate-900 text-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-3.5">
+                <button onclick="playMockVideo(this)" class="w-12 h-12 rounded-full bg-brand-600 hover:bg-brand-500 flex items-center justify-center text-white shadow-lg shrink-0 transition-transform hover:scale-105">
+                  <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                </button>
+                <div>
+                  <div class="text-sm font-bold">${t.videoTitle}</div>
+                  <div id="video-status-text" class="text-xs text-slate-400 mt-0.5">${t.videoSub}</div>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-white/10 text-[11px] font-mono text-blue-200">00:00 / 08:45</span>
+            </div>
+
+            <!-- Авторские советы -->
+            <div class="p-4 rounded-xl bg-indigo-50/80 border border-indigo-200/80 space-y-1.5">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 flex items-center gap-1.5">
+                <span>🎓</span>
+                <span>${t.authorTipsTitle}</span>
+              </div>
+              <p class="text-sm text-indigo-950 leading-relaxed">${p.authorTip[state.lang]}</p>
+            </div>
+          </div>
+        `;
+      } else {
+        // Красивый Paywall в тенге
+        solContainer.innerHTML = `
+          <div class="relative p-6 sm:p-8 bg-gradient-to-b from-slate-50 to-white text-center space-y-5">
+            <!-- Размытый превью-фон решения -->
+            <div class="select-none pointer-events-none opacity-25 blur-[3px] text-left space-y-2 max-h-24 overflow-hidden">
+              <div class="p-2 bg-slate-200 rounded">1-қадам / Шаг 1: Негізгі теңдеу мен бастапқы шарттарды жазамыз...</div>
+              <div class="p-2 bg-slate-200 rounded">2-қадам / Шаг 2: Комбинаторлық түрлендіру арқылы жауабын аламыз...</div>
+            </div>
+
+            <div class="max-w-lg mx-auto space-y-3 -mt-6 relative z-10">
+              <div class="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto text-xl shadow-sm">
+                🔒
+              </div>
+              <span class="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">
+                ${t.paywallBadge}
+              </span>
+              <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">
+                ${t.paywallTitle}
+              </h3>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                ${t.paywallDesc}
+              </p>
+
+              <div class="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+                <button onclick="openCheckoutModal('single', '${p.id}')" class="px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-900 border-2 border-brand-600 font-extrabold text-sm shadow-sm transition-all">
+                  ${t.paywallSingleBtn}
+                </button>
+                <button onclick="openCheckoutModal('pro', '${p.id}')" class="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-extrabold text-sm shadow-md shadow-brand-600/25 transition-all">
+                  ${t.paywallProBtn}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Рендер AI-помощника
+      renderAiAssistant(p);
+    }
+
+    function revealNextHint(problemId) {
+      const current = state.revealedHints[problemId] || 0;
+      state.revealedHints[problemId] = current + 1;
+      renderWorkspace(problemId);
+    }
+
+    function playMockVideo(btn) {
+      const t = I18N[state.lang];
+      const statusEl = document.getElementById('video-status-text');
+      if (statusEl) {
+        statusEl.textContent = t.videoPlaying;
+        statusEl.classList.remove('text-slate-400');
+        statusEl.classList.add('text-emerald-400', 'font-semibold');
+      }
+      showToast(t.videoPlaying);
+    }
+
+    function checkUserAnswer() {
+      const p = PROBLEMS_DATA.find(item => item.id === state.activeProblemId);
+      if (!p) return;
+      const t = I18N[state.lang];
+      const inputEl = document.getElementById('ws-answer-input');
+      const feedbackEl = document.getElementById('ws-answer-feedback');
+      const rawVal = inputEl.value.trim();
+
+      if (!rawVal) {
+        feedbackEl.textContent = t.answerEmpty;
+        feedbackEl.className = 'p-3.5 rounded-xl text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 block fade-in';
+        return;
+      }
+
+      state.lastUserAnswer[p.id] = rawVal;
+      state.attemptedCount += 1;
+
+      // Нормализуем ответ (убираем пробелы и единицы измерения если ввели)
+      const normalizedUser = rawVal.replace(/\s+/g, '').replace(/[%°]/g, '').toLowerCase();
+      const normalizedRight = p.answer.toLowerCase();
+
+      if (normalizedUser === normalizedRight) {
+        state.correctCount += 1;
+        if (!state.solvedIds.includes(p.id)) {
+          state.solvedIds.push(p.id);
+          state.activityLog.unshift({
+            id: 'act-' + Date.now(),
+            problemId: p.id,
+            type: 'solved',
+            time: { kz: 'Жаңа ғана', ru: 'Только что' }
+          });
+        }
+        feedbackEl.textContent = t.answerCorrect;
+        feedbackEl.className = 'p-3.5 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 block fade-in';
+        updateHeaderControls();
+        renderWorkspace(p.id);
+      } else {
+        feedbackEl.textContent = t.answerWrong;
+        feedbackEl.className = 'p-3.5 rounded-xl text-sm font-semibold bg-rose-50 text-rose-800 border border-rose-200 block fade-in';
+      }
+    }
+
+    /**
+     * 9. ИНТЕРАКТИВНЫЙ AI-ПОМОЩНИК (КОНТЕКСТНЫЕ ОТВЕТЫ НА KZ И RU)
+     */
+    function renderAiAssistant(problem) {
+      const t = I18N[state.lang];
+      const chatBox = document.getElementById('ai-chat-messages');
+      const history = state.aiHistories[problem.id] || [];
+
+      chatBox.innerHTML = history.map(msg => {
+        if (msg.sender === 'user') {
+          return `
+            <div class="flex justify-end">
+              <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-brand-600 text-white text-xs sm:text-sm leading-relaxed shadow-sm">
+                ${escapeHtml(msg.text)}
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex justify-start">
+              <div class="max-w-[90%] px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm leading-relaxed shadow-sm">
+                ${msg.text}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Быстрые чипсы
+      const chipsContainer = document.getElementById('ai-quick-chips');
+      chipsContainer.innerHTML = t.aiChips.map(chip => `
+        <button onclick="handleAiChip('${chip.id}', '${chip.label}')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200 hover:border-brand-200 text-xs font-semibold transition-colors">
+          ${chip.label}
+        </button>
+      `).join('');
+    }
+
+    function handleAiChip(chipId, chipLabel) {
+      const p = PROBLEMS_DATA.find(item => item.id === state.activeProblemId);
+      if (!p) return;
+
+      const history = state.aiHistories[p.id];
+      history.push({ sender: 'user', text: chipLabel });
+
+      const lastAns = state.lastUserAnswer[p.id];
+      let reply = '';
+
+      if (state.lang === 'kz') {
+        if (chipId === 'mistake') {
+          reply = lastAns
+            ? `Сіз енгізген <b>«${escapeHtml(lastAns)}»</b> жауабын тексердім. Бұл есепте (${p.topic.kz}) ең жиі кететін қате — аралық шамаларды толық есептемеу немесе формула коэффициентін ұмыту. 1-кеңеске назар аударыңыз: <i>«${p.hints.kz[0]}»</i>`
+            : `Сіз әлі жауап енгізген жоқсыз 😊 Алдымен өз нұсқаңызды жазып тексеріңіз, сонда мен нақты қай жерде қателескеніңізді талдап беремін!`;
+        } else if (chipId === 'formula') {
+          reply = `Бұл есептің негізгі кілті (<b>${p.topic.kz}</b>):<br>• ${p.hints.kz[0]}<br>• ${p.hints.kz[1]}`;
+        } else if (chipId === 'similar') {
+          reply = `Жаттығуға арналған ұқсас олимпиадалық есеп:<br>📌 ${p.similarProblem.kz}`;
+        }
+      } else {
+        if (chipId === 'mistake') {
+          reply = lastAns
+            ? `Я проверил ваш последний ответ <b>«${escapeHtml(lastAns)}»</b>. В теме «${p.topic.ru}» частая ошибка — неверный учёт всех случаев или коэффициента. Обратите внимание на идею: <i>«${p.hints.ru[0]}»</i>`
+            : `Вы ещё не отправили свой вариант ответа 😊 Введите число в поле проверки слева, и я помогу найти ошибку в рассуждениях!`;
+        } else if (chipId === 'formula') {
+          reply = `Ключевая идея и формула для темы <b>«${p.topic.ru}»</b>:<br>• ${p.hints.ru[0]}<br>• ${p.hints.ru[1]}`;
+        } else if (chipId === 'similar') {
+          reply = `Вот отличная похожая задача для закрепления:<br>📌 ${p.similarProblem.ru}`;
+        }
+      }
+
+      history.push({ sender: 'ai', text: reply });
+      renderAiAssistant(p);
+    }
+
+    function sendAiCustomMessage() {
+      const input = document.getElementById('ai-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const p = PROBLEMS_DATA.find(item => item.id === state.activeProblemId);
+      if (!p) return;
+
+      input.value = '';
+      const history = state.aiHistories[p.id];
+      history.push({ sender: 'user', text });
+
+      const lower = text.toLowerCase();
+      let reply = '';
+
+      if (state.lang === 'kz') {
+        if (lower.includes('жауап') || lower.includes('ответ') || lower.includes('шешім')) {
+          reply = `Дайын жауапты бірден айтпаймын, бірақ бағыт берейін: <b>${p.hints.kz[p.hints.kz.length - 1]}</b>. Егер толық қадамдық шешім керек болса, төмендегі талдау блогын ашыңыз.`;
+        } else {
+          reply = `Жақсы сұрақ! «${p.topic.kz}» тақырыбы бойынша мына қадамды орындап көріңіз: <i>${p.hints.kz[0]}</i>. Тағы нақтырақ сұрасаңыз болады.`;
+        }
+      } else {
+        if (lower.includes('ответ') || lower.includes('решение') || lower.includes('скажи')) {
+          reply = `Готовый ответ сразу не подскажу, чтобы не лишать тебя олимпиадного азарта 😉 Но вот финальная подсказка: <b>${p.hints.ru[p.hints.ru.length - 1]}</b>.`;
+        } else {
+          reply = `Отличный вопрос по теме «${p.topic.ru}»! Попробуй применить следующий приём: <i>${p.hints.ru[0]}</i>. Если нужно — запроси похожую задачу кнопкой ниже.`;
+        }
+      }
+
+      history.push({ sender: 'ai', text: reply });
+      renderAiAssistant(p);
+    }
+
+    /**
+     * 10. МОДАЛЬНОЕ ОКНО ОПЛАТЫ (CHECKOUT В ТЕНГЕ ₸)
+     */
+    function openCheckoutModal(type, problemId) {
+      state.checkout.type = type;
+      state.checkout.problemId = problemId;
+      state.checkout.paymentMethod = 'kaspi';
+
+      const t = I18N[state.lang];
+      const modal = document.getElementById('checkout-modal');
+      const nameEl = document.getElementById('modal-item-name');
+      const descEl = document.getElementById('modal-item-desc');
+      const amountEl = document.getElementById('modal-total-amount');
+      const btnTextEl = document.getElementById('modal-confirm-text');
+
+      let priceStr = '390 ₸';
+      if (type === 'single') {
+        const p = PROBLEMS_DATA.find(item => item.id === problemId);
+        nameEl.textContent = state.lang === 'kz'
+          ? `Есептің толық талдауы: «${p ? p.title.kz : ''}»`
+          : `Полный разбор задачи: «${p ? p.title.ru : ''}»`;
+        descEl.textContent = state.lang === 'kz'
+          ? 'Қадамдық шешім + Бейне-талдау + Авторлық кеңестер (мәңгілік қолжетімділік)'
+          : 'Пошаговое решение + Видео-разбор + Авторские советы (навсегда)';
+        priceStr = '390 ₸';
+      } else if (type === 'pro') {
+        nameEl.textContent = state.lang === 'kz'
+          ? '«Olimp PRO» жазылымы (1 ай)'
+          : 'Подписка «Olimp PRO» (1 месяц)';
+        descEl.textContent = state.lang === 'kz'
+          ? 'Барлық пәндер бойынша шексіз талдаулар, OlimpAI және сынама олимпиадалар'
+          : 'Безлимитный доступ ко всем разборам по всем предметам, OlimpAI и пробные олимпиады';
+        priceStr = '3 990 ₸';
+      } else if (type === 'b2b') {
+        nameEl.textContent = state.lang === 'kz'
+          ? 'Мектептік / Сыныптық пакет B2B (1 ай)'
+          : 'Школьный / Классный пакет B2B (1 месяц)';
+        descEl.textContent = state.lang === 'kz'
+          ? '15 оқушыға дейін доступ + Мұғалім аналитикасы + Үй тапсырмасын генерациялау'
+          : 'Групповой доступ до 15 учеников + Аналитика для учителя + Генерация ДЗ';
+        priceStr = '29 900 ₸';
+      }
+
+      amountEl.textContent = priceStr;
+      btnTextEl.textContent = `${t.modalPayBtnPrefix}${priceStr}`;
+      selectPaymentMethod('kaspi');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function selectPaymentMethod(method) {
+      state.checkout.paymentMethod = method;
+      ['kaspi', 'card', 'apple'].forEach(m => {
+        const btn = document.getElementById(`pay-method-${m}`);
+        if (m === method) {
+          btn.className = 'pay-method-btn p-3 rounded-xl border-2 border-brand-600 bg-brand-50/40 text-center transition-all';
+        } else {
+          btn.className = 'pay-method-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-center transition-all';
+        }
+      });
+    }
+
+    function confirmMockPayment() {
+      const t = I18N[state.lang];
+      const btn = document.getElementById('modal-confirm-btn');
+      const btnText = document.getElementById('modal-confirm-text');
+      const oldText = btnText.textContent;
+
+      btn.disabled = true;
+      btnText.textContent = t.modalProcessing;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = oldText;
+        closeCheckoutModal();
+
+        const { type, problemId } = state.checkout;
+        if (type === 'single' && problemId) {
+          if (!state.unlockedIds.includes(problemId)) {
+            state.unlockedIds.push(problemId);
+            state.activityLog.unshift({
+              id: 'act-' + Date.now(),
+              problemId,
+              type: 'unlocked',
+              time: { kz: 'Жаңа ғана (390 ₸)', ru: 'Только что (390 ₸)' }
+            });
+          }
+          showToast(t.toastPaidSingle);
+        } else if (type === 'pro') {
+          state.isPro = true;
+          showToast(t.toastPaidPro);
+        } else if (type === 'b2b') {
+          state.isPro = true;
+          showToast(t.toastPaidB2b);
+        }
+
+        updateHeaderControls();
+        if (state.currentView === 'workspace' && state.activeProblemId) {
+          renderWorkspace(state.activeProblemId);
+        } else if (state.currentView === 'catalog') {
+          renderCatalog();
+        } else if (state.currentView === 'pricing') {
+          renderPricing();
+        }
+      }, 650);
+    }
+
+    /**
+     * 11. ЭКРАН ТРЕКЕРА ПРОГРЕССА
+     */
+    function renderProgress() {
+      const t = I18N[state.lang];
+      const solvedCount = state.solvedIds.length;
+      const accuracy = state.attemptedCount > 0
+        ? Math.round((state.correctCount / state.attemptedCount) * 100)
+        : 0;
+      const unlockedCount = state.isPro ? PROBLEMS_DATA.length : state.unlockedIds.length;
+      const points = solvedCount * 120 + unlockedCount * 25;
+
+      // KPI карточки
+      const kpis = [
+        { label: t.kpiSolved, value: `${solvedCount} / ${PROBLEMS_DATA.length}`, icon: '🎯', color: 'text-emerald-600 bg-emerald-50' },
+        { label: t.kpiAccuracy, value: `${accuracy}%`, icon: '📈', color: 'text-brand-600 bg-brand-50' },
+        { label: t.kpiUnlocked, value: `${unlockedCount}`, icon: '🔓', color: 'text-indigo-600 bg-indigo-50' },
+        { label: t.kpiPoints, value: `${points} XP`, icon: '🏆', color: 'text-amber-600 bg-amber-50' }
+      ];
+
+      document.getElementById('prog-kpi-grid').innerHTML = kpis.map(k => `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl ${k.color} flex items-center justify-center text-xl shrink-0">
+            ${k.icon}
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500">${k.label}</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">${k.value}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Прогресс по предметам
+      const subjects = [...new Set(PROBLEMS_DATA.map(p => p.subject.ru))];
+      document.getElementById('prog-subjects-list').innerHTML = subjects.map(ruSubj => {
+        const totalInSubj = PROBLEMS_DATA.filter(p => p.subject.ru === ruSubj);
+        const solvedInSubj = totalInSubj.filter(p => state.solvedIds.includes(p.id));
+        const pct = Math.round((solvedInSubj.length / totalInSubj.length) * 100);
+        const label = totalInSubj[0].subject[state.lang];
+
+        return `
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-sm font-semibold">
+              <span class="text-slate-800">${label}</span>
+              <span class="text-slate-500">${solvedInSubj.length}/${totalInSubj.length} (${pct}%)</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full rounded-full bg-brand-600 transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Диагностика сильных и слабых тем
+      const strongTopics = state.lang === 'kz'
+        ? ['Органикалық химия (100%)', 'Комбинаторика (85%)']
+        : ['Органическая химия (100%)', 'Комбинаторика (85%)'];
+      const weakTopics = state.lang === 'kz'
+        ? ['Графтар теориясы (қайталау ұсынылады)', 'Термодинамика (практика қажет)']
+        : ['Теория графов (рекомендуется повторить)', 'Термодинамика (нужна практика)'];
+
+      document.getElementById('prog-topics-analysis').innerHTML = `
+        <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">💪 ${t.strongTopicsLabel}</div>
+          <ul class="text-sm text-emerald-950 space-y-1">
+            ${strongTopics.map(item => `<li>• ${item}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-amber-800">⚡ ${t.weakTopicsLabel}</div>
+          <ul class="text-sm text-amber-950 space-y-1">
+            ${weakTopics.map(item => `<li>• ${item}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+
+      // Журнал активности
+      document.getElementById('prog-activity-list').innerHTML = state.activityLog.map(act => {
+        const p = PROBLEMS_DATA.find(item => item.id === act.problemId);
+        if (!p) return '';
+        const actionText = act.type === 'solved'
+          ? (state.lang === 'kz' ? 'Есеп дұрыс шығарылды' : 'Задача успешно решена')
+          : (state.lang === 'kz' ? 'Қадамдық талдау ашылды' : 'Открыт пошаговый разбор');
+        const badgeClass = act.type === 'solved'
+          ? 'bg-emerald-50 text-emerald-700'
+          : 'bg-brand-50 text-brand-700';
+
+        return `
+          <div onclick="openProblemWorkspace('${p.id}')" class="py-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-50 px-2 rounded-lg transition-colors">
+            <div class="space-y-0.5">
+              <div class="text-sm font-bold text-slate-900">${p.title[state.lang]}</div>
+              <div class="text-xs text-slate-500">${p.subject[state.lang]} • ${act.time[state.lang]}</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass} shrink-0">${actionText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /**
+     * 12. ЭКРАН ТАРИФОВ И МОНЕТИЗАЦИИ (В ТЕНГЕ ₸)
+     */
+    function renderPricing() {
+      const plans = state.lang === 'kz' ? [
+        {
+          id: 'free',
+          name: 'Базалық (Free)',
+          price: '0 ₸',
+          period: 'мәңгілік тегін',
+          desc: 'Олимпиада есептерімен танысу және өз күшін сынау үшін.',
+          features: [
+            'Барлық өткен жылдар есептерінің шарты',
+            'Пән, сынып және кезең бойынша сүзгілер',
+            'Қысқа жауап кілті (өзін-өзі тексеру)',
+            '2 тегін үлгілік талдау'
+          ],
+          btnText: 'Ағымдағы базалық жоспар',
+          action: () => navigateTo('catalog'),
+          highlight: false
+        },
+        {
+          id: 'single',
+          name: 'Бір есепті талдау',
+          price: '390 ₸',
+          period: 'бір реттік төлем',
+          desc: 'Нақты бір қиын есептің шешімін түсіну қажет болғанда.',
+          features: [
+            'Таңдалған есептің толық қадамдық шешімі',
+            'Қазылар алқасының бейне-талдауы',
+            'Авторлық олимпиадалық кеңестер',
+            'Талдау аккаунтта мәңгі сақталады'
+          ],
+          btnText: 'Есеп таңдау (390 ₸)',
+          action: () => navigateTo('catalog'),
+          highlight: false
+        },
+        {
+          id: 'pro',
+          name: 'Olimp PRO',
+          price: '3 990 ₸',
+          period: 'айына',
+          desc: 'Облыстық және республикалық кезеңге жүйелі дайындық.',
+          features: [
+            'Барлық пәндер бойынша ШЕКСІЗ талдаулар',
+            'OlimpAI жеке тәлімгері (шектеусіз)',
+            'Сынама олимпиадалар және таймер',
+            'Әлсіз тақырыптар бойынша жеке жоспар'
+          ],
+          btnText: state.isPro ? '✓ Белсенді (Olimp PRO)' : 'Olimp PRO қосу',
+          action: () => openCheckoutModal('pro', null),
+          highlight: true
+        },
+        {
+          id: 'b2b',
+          name: 'Мектеп / Сынып B2B',
+          price: '29 900 ₸',
+          period: 'айына (15 оқушыға дейін)',
+          desc: 'Мұғалімдер мен олимпиадалық резерв тренерлеріне арналған.',
+          features: [
+            '15 оқушыға дейін толық PRO қолжетімділік',
+            'Мұғалімге арналған сынып аналитикасы',
+            'Үй тапсырмасын 1 батырмамен генерациялау',
+            'Оқушылар рейтингі және есеп беру'
+          ],
+          btnText: 'B2B пакетін қосу',
+          action: () => openCheckoutModal('b2b', null),
+          highlight: false
+        }
+      ] : [
+        {
+          id: 'free',
+          name: 'Базовый (Free)',
+          price: '0 ₸',
+          period: 'бесплатно навсегда',
+          desc: 'Для знакомства с архивом олимпиад и проверки своих ответов.',
+          features: [
+            'Условия всех задач прошлых лет (2022–2025)',
+            'Умные фильтры по предметам, классам и этапам',
+            'Краткий ключ ответа (мгновенная проверка)',
+            '2 бесплатных примера полного разбора'
+          ],
+          btnText: 'Перейти в каталог',
+          action: () => navigateTo('catalog'),
+          highlight: false
+        },
+        {
+          id: 'single',
+          name: 'Разбор одной задачи',
+          price: '390 ₸',
+          period: 'разовая покупка',
+          desc: 'Когда нужно разобрать конкретную сложную олимпиадную задачу.',
+          features: [
+            'Полное пошаговое решение выбранной задачи',
+            'Видео-разбор с комментариями жюри',
+            'Авторские советы и похожая задача',
+            'Доступ сохраняется навсегда'
+          ],
+          btnText: 'Выбрать задачу (390 ₸)',
+          action: () => navigateTo('catalog'),
+          highlight: false
+        },
+        {
+          id: 'pro',
+          name: 'Olimp PRO',
+          price: '3 990 ₸',
+          period: 'в месяц',
+          desc: 'Системная подготовка к областному и республиканскому этапам.',
+          features: [
+            'БЕЗЛИМИТНЫЙ доступ ко всем разборам',
+            'Персональный наставник OlimpAI 24/7',
+            'Пробные олимпиады и трекер прогресса',
+            'Диагностика слабых тем по предметам'
+          ],
+          btnText: state.isPro ? '✓ Активно (Olimp PRO)' : 'Оформить Olimp PRO',
+          action: () => openCheckoutModal('pro', null),
+          highlight: true
+        },
+        {
+          id: 'b2b',
+          name: 'Школьный пакет B2B',
+          price: '29 900 ₸',
+          period: 'в месяц (до 15 учеников)',
+          desc: 'Для учителей-предметников и тренеров олимпиадных команд.',
+          features: [
+            'Групповой PRO-доступ до 15 учеников',
+            'Аналитика прогресса и ошибок для учителя',
+            'Генерация домашних заданий в 1 клик',
+            'Рейтинг класса и экспорт отчётов'
+          ],
+          btnText: 'Подключить B2B',
+          action: () => openCheckoutModal('b2b', null),
+          highlight: false
+        }
+      ];
+
+      const grid = document.getElementById('pricing-cards-grid');
+      grid.innerHTML = plans.map((plan, index) => {
+        const cardBorder = plan.highlight
+          ? 'border-2 border-brand-600 shadow-xl shadow-brand-600/10 relative'
+          : 'border border-slate-200 shadow-sm';
+        const badge = plan.highlight
+          ? `<span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-brand-600 text-white text-[11px] font-extrabold uppercase tracking-wider">Хит таңдау / Выбор учеников</span>`
+          : '';
+        const btnStyle = plan.highlight
+          ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/20'
+          : 'bg-slate-900 hover:bg-slate-800 text-white';
+
+        return `
+          <div class="bg-white rounded-2xl p-6 flex flex-col justify-between gap-6 ${cardBorder}">
+            ${badge}
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-lg font-extrabold text-slate-900">${plan.name}</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">${plan.desc}</p>
+              </div>
+              <div class="pb-4 border-b border-slate-100">
+                <span class="text-3xl font-extrabold text-slate-900">${plan.price}</span>
+                <span class="text-xs font-medium text-slate-500 block mt-0.5">${plan.period}</span>
+              </div>
+              <ul class="space-y-2.5 text-xs sm:text-sm text-slate-700">
+                ${plan.features.map(f => `
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-600 font-bold mt-0.5">✓</span>
+                    <span>${f}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+            <button id="plan-btn-${plan.id}" class="w-full py-3 rounded-xl font-bold text-sm transition-all ${btnStyle}">
+              ${plan.btnText}
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      plans.forEach(plan => {
+        const btn = document.getElementById(`plan-btn-${plan.id}`);
+        if (btn) btn.onclick = plan.action;
+      });
+    }
+
+    /**
+     * 13. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (TOAST И ЭКРАНИРОВАНИЕ)
+     */
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-message').textContent = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
